@@ -1,0 +1,67 @@
+{% extends 'Base/base.html' %}
+{% block body %}
+	<div class="container">
+		<h1 class="text-center text-white">Smoke Detection</h1>
+		<div class="row mb-4">
+			<div class="col d-table">
+				<div id="table1" class="d-table-cell align-middle" style="height: 200px; border: solid 1px;">
+					<h1 class="text-center text-white">1</h1>
+				</div>
+			</div>
+			<div class="col d-table">
+				<div id="table2" class="d-table-cell align-middle" style="height: 200px; border: solid 1px;">
+					<h1 class="text-center text-white">2</h1>
+				</div>
+			</div>
+			<div class="col d-table">
+				<div id="table3" class="d-table-cell align-middle" style="height: 200px; border: solid 1px;">
+					<h1 class="text-center text-white">3</h1>
+				</div>
+			</div>
+		</div>
+		<div class="row mb-4">
+			<div class="col d-table">
+				<div id="table4" class="d-table-cell align-middle" style="height: 200px; border: solid 1px;">
+					<h1 class="text-center text-white">4</h1>
+				</div>
+			</div>
+			<div class="col d-table">
+				<div id="table5" class="d-table-cell align-middle" style="height: 200px; border: solid 1px;">
+					<h1 class="text-center text-white">5</h1>
+				</div>
+			</div>
+			<div class="col d-table">
+				<div id="table6" class="d-table-cell align-middle" style="height: 200px; border: solid 1px;">
+					<h1 class="text-center text-white">6</h1>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block additionalScripts %}
+	<script>
+		function getData() {
+			$.ajax({
+				url: '/api/data/',
+				statusCode: {
+					200: function (response) {
+						console.log(response);
+						var data = response.tables;
+						for (var i = 0; i < data.length; i++) {
+							$('#table' + (i + 1)).css('background-color', data[i] ? 'red' : 'green');
+						}
+					},
+					404: function () {
+						console.log("Something went wrong.");
+					}
+				}
+			});
+		}
+		getData();
+		setInterval(
+			getData,
+			5000
+		);
+	</script>
+{% endblock %}
