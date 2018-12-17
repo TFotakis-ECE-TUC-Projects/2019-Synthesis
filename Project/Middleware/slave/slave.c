@@ -1,9 +1,8 @@
 #include "radio.h"
 
-
-#define BAUDRATE 115200  	// Baud rate of UART in bps
-#define ID 0          		// ID of slave
-#define V_REFERENCE 4000	// Voltage Reference for the ADC in mV
+#define BAUDRATE 115200   // Baud rate of UART in bps
+#define ID 0              // ID of slave
+#define V_REFERENCE 4000  // Voltage Reference for the ADC in mV
 
 // Radio settings
 // Chipcon
@@ -76,9 +75,7 @@ RF_SETTINGS code rfSettings = {
     0xFF   // PKTLEN		Packet length.
 };
 
-
 BYTE code paTable = 0xFE;  // PATABLE (0 dBm output power)
-
 
 BYTE xdata txBuffer[] = {3, 0, 1, 2};
 BYTE xdata rxBuffer[61];  // Length byte  + 2 status bytes are not stored in
@@ -94,140 +91,144 @@ UINT16 mV;
 BYTE mVlow;
 BYTE mVhigh;
 
+#define _LASER 0x00
+SBIT(LASER, SFR_P2, 0);  // LASER='1' means ON
 
 void Timer2_Initialize(void) {
-	TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
-										// use SYSCLK as timebase, 16-bit
-										// auto-reload
-	CKCON |= 0x10;                      // select SYSCLK for timer 2 source
-	TMR2RL = 65535 - (SYSCLK / 10000);  // init reload value for 10uS
-	TMR2 = 0xffff;                      // set to reload immediately
-	// TR2 = 1;                        	// start Timer2
+  TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
+                                      // use SYSCLK as timebase, 16-bit
+                                      // auto-reload
+  CKCON |= 0x10;                      // select SYSCLK for timer 2 source
+  TMR2RL = 65535 - (SYSCLK / 10000);  // init reload value for 10uS
+  TMR2 = 0xffff;                      // set to reload immediately
+  // TR2 = 1;                        	// start Timer2
 }
-
 
 void ADC0_Init(void) {
-	ADC0CN = 0x02;  // ADC0 disabled, normal tracking,
-					// conversion triggered on TMR2 overflow
+  ADC0CN = 0x02;  // ADC0 disabled, normal tracking,
+                  // conversion triggered on TMR2 overflow
 
-	REF0CN = 0x0A;  // Enable on-chip VREF and buffer
+  REF0CN = 0x0A;  // Enable on-chip VREF and buffer
 
-	// AMX0P = 0x0C;	// ADC0 positive input = P2.4
-	// AMX0P = 0x00;
-	AMX0P = 0x04;
-	AMX0N = 0x1F;  // ADC0 negative input = GND
-					// i.e., single ended mode
+  // AMX0P = 0x0C;	// ADC0 positive input = P2.4
+  // AMX0P = 0x00;
+  AMX0P = 0x04;
+  AMX0N = 0x1F;  // ADC0 negative input = GND
+                 // i.e., single ended mode
 
-	ADC0CF = ((SYSCLK / 3000000) - 1) << 3;  // set SAR clock to 3MHz
+  ADC0CF = ((SYSCLK / 3000000) - 1) << 3;  // set SAR clock to 3MHz
 
-	ADC0CF |= 0x00;  // right-justify results
+  ADC0CF |= 0x00;  // right-justify results
 
-	EIE1 |= 0x08;  // enable ADC0 conversion complete int.
+  EIE1 |= 0x08;  // enable ADC0 conversion complete int.
 
-	AD0EN = 1;  // enable ADC0
+  AD0EN = 1;  // enable ADC0
 }
 
-
-void ADC0_ISR(void) interrupt 10 {
-	static unsigned long accumulator = 0;     // accumulator for averaging
-	static unsigned int measurements = 2048;  // measurement counter
-	unsigned long result = 0;
-
-	counter++;
-	accumulator += ADC0;
-	measurements--;
-
-	if (measurements) {
-		AD0INT = 0;
-		return;
-	}
-
-	TR2 = 0;
-	measurements = 2048;
-	result = accumulator / 2048;
-	accumulator = 0;
-
-	// The 10-bit ADC value is averaged across 2048 measurements.
-	// The measured voltage applied to P1.4 is then:
-	//
-	//                           Vref (mV)
-	//   measurement (mV) =   --------------- * result (bits)
-	//                       (2^10)-1 (bits)
-	mV = result * V_REFERENCE / 1023;
-
-	mVlow = mV & 0x00ff;
-	mVhigh = (mV >> 8) & 0x00ff;
-	txBuffer[1] = mVlow;
-	txBuffer[2] = mVhigh;
-
-	txMode();
-
-	AD0INT = 0;
-	conversion_ended = 1;
-}
-
+void LASER_Init(void) { P2MDOUT |= _LASER; }
 
 void setup(void) {
-	// PCA0MD &= ~0x40;		// Disable watchdog timer
-	// SYSCLK_Init();			// Initialize system clock to 24.5MHz
-	CLOCK_INIT();          // Initialize clock
-	PORT_Init();           // Initialize crossbar and GPIO
-	SPI_INIT(SCLK_6_MHZ);  // Initialize SPI
+  // PCA0MD &= ~0x40;		// Disable watchdog timer
+  // SYSCLK_Init();			// Initialize system clock to 24.5MHz
+  CLOCK_INIT();  // Initialize clock
+  PORT_Init();   // Initialize crossbar and GPIO
+  LASER_Init();
+  SPI_INIT(SCLK_6_MHZ);  // Initialize SPI
 
-	Timer2_Initialize();
-	ADC0_Init();
+  Timer2_Initialize();
+  ADC0_Init();
 
-	waitRadioForResponce();  // you need to wait ~41 usecs, before CC2500 responds
-	resetRadio();
+  waitRadioForResponce();  // you need to wait ~41 usecs, before CC2500 responds
+  resetRadio();
 
-	halRfWriteRfSettings(&rfSettings);
-	halSpiWriteReg(CCxxx0_PATABLE, paTable);
+  halRfWriteRfSettings(&rfSettings);
+  halSpiWriteReg(CCxxx0_PATABLE, paTable);
 
-	LED = 0;
-	txBuffer[3] = ID;
-	EA = 1;  // Enable global interrupts
+  LED = 0;
+  txBuffer[3] = ID;
+  EA = 1;  // Enable global interrupts
 }
-
 
 void txMode(void) {
-	halRfSendPacket(txBuffer, sizeof(txBuffer));
-	halWait(30000);
-	halWait(30000);
-	LED = ~LED;
-	halWait(30000);
-	halWait(30000);
+  LED = 1;
+  halRfSendPacket(txBuffer, sizeof(txBuffer));
+  halWait(30000);
+  halWait(30000);
+  //   LED = ~LED;
+  halWait(30000);
+  halWait(30000);
+  LED = 0;
 }
-
 
 void rxMode(void) {
-	length = sizeof(rxBuffer);
-	if (halRfReceivePacket(rxBuffer, &length)) LED = ~LED;
-	flag_req = rxBuffer[0] == ID;
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
+  length = sizeof(rxBuffer);
+  halRfReceivePacket(rxBuffer, &length);
+//   if (halRfReceivePacket(rxBuffer, &length)) LED = ~LED;
+  flag_req = rxBuffer[0] == ID;
+  halWait(30000);
+  halWait(30000);
+  halWait(30000);
+  halWait(30000);
+  halWait(30000);
+  halWait(30000);
+  halWait(30000);
+  halWait(30000);
 }
-
 
 void startConversion(void) {
-	conversion_ended = 0;
-	TR2 = 1;
-	while (!conversion_ended);
+  conversion_ended = 0;
+  LASER = 1;
+  TR2 = 1;
+  while (!conversion_ended)
+    ;
+  LASER = 0;
 }
 
+void ADC0_ISR(void) interrupt 10 {
+  static unsigned long accumulator = 0;     // accumulator for averaging
+  static unsigned int measurements = 2048;  // measurement counter
+  unsigned long result = 0;
+
+  counter++;
+  accumulator += ADC0;
+  measurements--;
+
+  if (measurements) {
+    AD0INT = 0;
+    return;
+  }
+
+  TR2 = 0;
+  measurements = 2048;
+  result = accumulator / 2048;
+  accumulator = 0;
+
+  // The 10-bit ADC value is averaged across 2048 measurements.
+  // The measured voltage applied to P1.4 is then:
+  //
+  //                           Vref (mV)
+  //   measurement (mV) =   --------------- * result (bits)
+  //                       (2^10)-1 (bits)
+  //   mV = result * V_REFERENCE / 1023;
+  mV = result;
+
+  mVlow = mV & 0x00ff;
+  mVhigh = (mV >> 8) & 0x00ff;
+  txBuffer[1] = mVlow;
+  txBuffer[2] = mVhigh;
+
+  txMode();
+
+  AD0INT = 0;
+  conversion_ended = 1;
+}
 
 void loop(void) {
-	rxMode();
-	if (flag_req) startConversion();
+  rxMode();
+  if (flag_req) startConversion();
 }
 
-
 void main(void) {
-	setup();
-	while (1) loop();
+  setup();
+  while (1) loop();
 }

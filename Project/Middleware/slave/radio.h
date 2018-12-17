@@ -103,7 +103,7 @@ SBIT(GDO0_PIN, SFR_P0, 6);
 #define LED2_           0x08    // P2.3     LED2, (Green)                               	Output
 SBIT(LED, SFR_P2, 2);           // LED='1' means ON
 SBIT(LED2, SFR_P2, 3);          // LED='1' means ON
-SBIT(SW2, SFR_P2, 0);           // SW2='0' means switch pressed
+// SBIT(SW2, SFR_P2, 0);           // SW2='0' means switch pressed
 
 
 //-----------------------------------------------------------------------------

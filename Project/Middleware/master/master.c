@@ -150,14 +150,15 @@ void setup(void) {
 
 
 void txMode(void) {
+  LED = 1;
 	halRfSendPacket(txBuffer, sizeof(txBuffer));
-	intToAscii(++packetsSent);
 
 	halWait(30000);
 	halWait(30000);
-	LED = ~LED;
+	// LED = ~LED;
 	halWait(30000);
 	halWait(30000);
+  LED = 0;
 }
 
 
@@ -179,9 +180,11 @@ void rxMode(void) {
 
 
 void request(void) {
+  int i;
+  uint16_t data[5] = {0, 0, 0, 0, 0};
 	// printf("mpika stin request\n");
-	for (int i = 0; i < NODES_NUMBER; i++) {
-		printf("i= %d \n", i);
+	for (i = 0; i < NODES_NUMBER; i++) {
+		// printf("i= %d \n", i);
 		txBuffer[1] = (BYTE)i;
 		// txBuffer[1]=0x02;
 		// printf("Requesting from: %d ... ", (int) txBuffer[1]);
@@ -191,10 +194,12 @@ void request(void) {
 		rxMode();
 		// printf("Received from: %d\n", (int) rxBuffer[2]);
 		mV = (rxBuffer[1] << 8) | rxBuffer[0];
+    data[i] = mV;
 		// printf("received voltage= %u  from id:  mV\n", mV);
-		printf("%u ", mV);
+		// printf("%u ", mV);
 	}
-	printf("\n");
+	printf("%u %u %u %u %u\n", data[0], data[1], data[2], data[3], data[4]);
+  // printf("\n");
 }
 
 
