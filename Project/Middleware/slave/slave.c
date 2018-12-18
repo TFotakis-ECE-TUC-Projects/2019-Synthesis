@@ -152,27 +152,13 @@ void setup(void) {
 void txMode(void) {
   LED = 1;
   halRfSendPacket(txBuffer, sizeof(txBuffer));
-  halWait(30000);
-  halWait(30000);
-  //   LED = ~LED;
-  halWait(30000);
-  halWait(30000);
   LED = 0;
 }
 
 void rxMode(void) {
   length = sizeof(rxBuffer);
   halRfReceivePacket(rxBuffer, &length);
-//   if (halRfReceivePacket(rxBuffer, &length)) LED = ~LED;
   flag_req = rxBuffer[0] == ID;
-  halWait(30000);
-  halWait(30000);
-  halWait(30000);
-  halWait(30000);
-  halWait(30000);
-  halWait(30000);
-  halWait(30000);
-  halWait(30000);
 }
 
 void startConversion(void) {

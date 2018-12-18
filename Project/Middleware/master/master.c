@@ -25,14 +25,14 @@
 // CRC operation = (1) CRC calculation in TX and CRC check in RX enabled
 // Forward Error Correction = (0) FEC disabled
 // Length configuration = (1) Variable length packets, packet length configured
-// by the first received byte after sync word. 
-// Packetlength = 255 
-// Preamble count = (2)  4 bytes 
-// Append status = 1 
+// by the first received byte after sync word.
+// Packetlength = 255
+// Preamble count = (2)  4 bytes
+// Append status = 1
 // Address check = (0) No address check FIFO
-// autoflush = 0 
-// Device address = 0 
-// GDO0 signal selection = (6) Asserts when sync word has been sent / received, 
+// autoflush = 0
+// Device address = 0
+// GDO0 signal selection = (6) Asserts when sync word has been sent / received,
 // and de-asserts at the end of the packet
 // GDO2 signal selection = (41) CHIP_RDY
 RF_SETTINGS code rfSettings = {
@@ -47,10 +47,12 @@ RF_SETTINGS code rfSettings = {
     0x22,  // MDMCFG1		Modem configuration.
     0xF8,  // MDMCFG0		Modem configuration.
     0x06,  // CHANNR		Channel number.
-    0x44,  // DEVIATN		Modem deviation setting (when FSK modulation is enabled).
+    0x44,  // DEVIATN		Modem deviation setting (when FSK modulation is
+           // enabled).
     0xB6,  // FREND1		Front end RX configuration.
     0x10,  // FREND0		Front end TX configuration.
-    0x18,  // MCSM0			Main Radio Control State Machine configuration.
+    0x18,  // MCSM0			Main Radio Control State Machine
+           // configuration.
     0x16,  // FOCCFG		Frequency Offset Compensation Configuration.
     0x1C,  // BSCFG			Bit synchronization Configuration.
     0xC7,  // AGCCTRL2		AGC control.
@@ -75,7 +77,6 @@ RF_SETTINGS code rfSettings = {
 
 BYTE code paTable = 0xFE;  // PATABLE (0 dBm output power)
 
-
 BYTE xdata txBuffer[] = {1, 0};
 BYTE xdata rxBuffer[61];  // Length byte  + 2 status bytes are not stored in
                           // this buffer
@@ -88,7 +89,6 @@ UINT8 length;
 BYTE mytestbyte;
 UINT16 mV;
 BYTE id;
-
 
 void UART0_Init(void) {
   P0MDOUT |= 0x10;  // enable UTX as push-pull output
@@ -124,6 +124,14 @@ void UART0_Init(void) {
   TI0 = 1;  // Indicate TX0 ready
 }
 
+void ALARM_Init(void) {
+  XBR1      |= 0x41;    // Route CEX0 to port pin
+  P0MDOUT   |= 0x03;    // Set P0.0, P0.1 to push-pull
+  PCA0MD    |= 0x08;    // Set PCA0 Clock source to system clock
+  PCA0CPM0  |= 0x42;    // Enable 8bit PWM Signal on CEX0
+  PCA0CPL0  |= 0;       // Set PCA0 Compare Flag Low byte to 128 so it generates a 50% PWM
+  PCA0CPH0  |= 127;     // Unused on 8bit PWM
+}
 
 void setup(void) {
   // PCA0MD &= ~0x40;							//
@@ -144,73 +152,68 @@ void setup(void) {
 
   // Timer2_Init (SYSCLK / 12 / 10);           // Init Timer2 to generate
   // interrupts at a 10Hz rate.
-
+  ALARM_Init();
   EA = 1;  // enable global interrupts
 }
 
-
 void txMode(void) {
   LED = 1;
-	halRfSendPacket(txBuffer, sizeof(txBuffer));
-
-	halWait(30000);
-	halWait(30000);
-	// LED = ~LED;
-	halWait(30000);
-	halWait(30000);
+  halRfSendPacket(txBuffer, sizeof(txBuffer));
   LED = 0;
 }
 
-
 void rxMode(void) {
-	length = sizeof(rxBuffer);
-	if (!halRfReceivePacket(rxBuffer, &length)) return;
-	// intToAscii(++packetsReceived);
-	LED = ~LED;
-
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
+  length = sizeof(rxBuffer);
+  halRfReceivePacket(rxBuffer, &length);
 }
-
 
 void request(void) {
   int i;
-  uint16_t data[5] = {0, 0, 0, 0, 0};
-	// printf("mpika stin request\n");
-	for (i = 0; i < NODES_NUMBER; i++) {
-		// printf("i= %d \n", i);
-		txBuffer[1] = (BYTE)i;
-		// txBuffer[1]=0x02;
-		// printf("Requesting from: %d ... ", (int) txBuffer[1]);
-		txMode();
-		// printf("Requested\n", (int) txBuffer[1]);
+  uint16_t measurements[5] = {0, 0, 0, 0, 0};
+  // printf("mpika stin request\n");
+  for (i = 0; i < NODES_NUMBER; i++) {
+    // printf("i= %d \n", i);
+    txBuffer[1] = (BYTE)i;
+    // txBuffer[1]=0x02;
+    // printf("Requesting from: %d ... ", (int) txBuffer[1]);
+    txMode();
+    // printf("Requested\n", (int) txBuffer[1]);
 
-		rxMode();
-		// printf("Received from: %d\n", (int) rxBuffer[2]);
-		mV = (rxBuffer[1] << 8) | rxBuffer[0];
-    data[i] = mV;
-		// printf("received voltage= %u  from id:  mV\n", mV);
-		// printf("%u ", mV);
-	}
-	printf("%u %u %u %u %u\n", data[0], data[1], data[2], data[3], data[4]);
+    rxMode();
+    // printf("Received from: %d\n", (int) rxBuffer[2]);
+    mV = (rxBuffer[1] << 8) | rxBuffer[0];
+    measurements[i] = mV;
+    // printf("received voltage= %u  from id:  mV\n", mV);
+    // printf("%u ", mV);
+  }
   // printf("\n");
+  printf("%u %u %u %u %u\n", measurements[0], measurements[1], measurements[2], measurements[3], measurements[4]);
 }
 
+void ALARM_PLAY(uint8_t play){
+  if(!play){
+    CR = 0;         // Disable PCA0 Timer --> PWM Output
+    return
+  }
+  CR = 1;           // Enable PCA0 Timer --> PWM Output
+  halWait(30000);
+  halWait(30000);
+  halWait(30000);
+  CR = 0;           // Disable PCA0 Timer --> PWM Output
+  halWait(30000);
+  halWait(30000);
+  halWait(30000);
+  PCA0CPH0 += 16;   // Change PWM Duty Cycle --> Alarm Sound
+}
 
 void loop(void) {
-	// txMode();
-	// rxMode();
-	request();
+  // txMode();
+  // rxMode();
+  // request();
+  ALARM_PLAY(1);
 }
 
-
 void main(void) {
-	setup();
-	while (1) loop();
+  setup();
+  while (1) loop();
 }
