@@ -19,41 +19,41 @@
 // RF_SETTINGS is a data structure which contains all relevant CCxxx0 registers
 //-----------------------------------------------------------------------------
 typedef struct S_RF_SETTINGS{
-    BYTE FSCTRL1;   // Frequency synthesizer control.
-    BYTE FSCTRL0;   // Frequency synthesizer control.
-    BYTE FREQ2;     // Frequency control word, high byte.
-    BYTE FREQ1;     // Frequency control word, middle byte.
-    BYTE FREQ0;     // Frequency control word, low byte.
-    BYTE MDMCFG4;   // Modem configuration.
-    BYTE MDMCFG3;   // Modem configuration.
-    BYTE MDMCFG2;   // Modem configuration.
-    BYTE MDMCFG1;   // Modem configuration.
-    BYTE MDMCFG0;   // Modem configuration.
-    BYTE CHANNR;    // Channel number.
-    BYTE DEVIATN;   // Modem deviation setting (when FSK modulation is enabled).
-    BYTE FREND1;    // Front end RX configuration.
-    BYTE FREND0;    // Front end RX configuration.
-    BYTE MCSM0;     // Main Radio Control State Machine configuration.
-    BYTE FOCCFG;    // Frequency Offset Compensation Configuration.
-    BYTE BSCFG;     // Bit synchronization Configuration.
-    BYTE AGCCTRL2;  // AGC control.
+	BYTE FSCTRL1;   // Frequency synthesizer control.
+	BYTE FSCTRL0;   // Frequency synthesizer control.
+	BYTE FREQ2;     // Frequency control word, high byte.
+	BYTE FREQ1;     // Frequency control word, middle byte.
+	BYTE FREQ0;     // Frequency control word, low byte.
+	BYTE MDMCFG4;   // Modem configuration.
+	BYTE MDMCFG3;   // Modem configuration.
+	BYTE MDMCFG2;   // Modem configuration.
+	BYTE MDMCFG1;   // Modem configuration.
+	BYTE MDMCFG0;   // Modem configuration.
+	BYTE CHANNR;    // Channel number.
+	BYTE DEVIATN;   // Modem deviation setting (when FSK modulation is enabled).
+	BYTE FREND1;    // Front end RX configuration.
+	BYTE FREND0;    // Front end RX configuration.
+	BYTE MCSM0;     // Main Radio Control State Machine configuration.
+	BYTE FOCCFG;    // Frequency Offset Compensation Configuration.
+	BYTE BSCFG;     // Bit synchronization Configuration.
+	BYTE AGCCTRL2;  // AGC control.
 	BYTE AGCCTRL1;  // AGC control.
-    BYTE AGCCTRL0;  // AGC control.
-    BYTE FSCAL3;    // Frequency synthesizer calibration.
-    BYTE FSCAL2;    // Frequency synthesizer calibration.
+	BYTE AGCCTRL0;  // AGC control.
+	BYTE FSCAL3;    // Frequency synthesizer calibration.
+	BYTE FSCAL2;    // Frequency synthesizer calibration.
 	BYTE FSCAL1;    // Frequency synthesizer calibration.
-    BYTE FSCAL0;    // Frequency synthesizer calibration.
-    BYTE FSTEST;    // Frequency synthesizer calibration control
-    BYTE TEST2;     // Various test settings.
-    BYTE TEST1;     // Various test settings.
-    BYTE TEST0;     // Various test settings.
-    BYTE FIFOTHR;   // RXFIFO and TXFIFO thresholds.
-    BYTE IOCFG2;    // GDO2 output pin configuration
-    BYTE IOCFG0;    // GDO0 output pin configuration
-    BYTE PKTCTRL1;  // Packet automation control.
-    BYTE PKTCTRL0;  // Packet automation control.
-    BYTE ADDR;      // Device address.
-    BYTE PKTLEN;    // Packet length.
+	BYTE FSCAL0;    // Frequency synthesizer calibration.
+	BYTE FSTEST;    // Frequency synthesizer calibration control
+	BYTE TEST2;     // Various test settings.
+	BYTE TEST1;     // Various test settings.
+	BYTE TEST0;     // Various test settings.
+	BYTE FIFOTHR;   // RXFIFO and TXFIFO thresholds.
+	BYTE IOCFG2;    // GDO2 output pin configuration
+	BYTE IOCFG0;    // GDO0 output pin configuration
+	BYTE PKTCTRL1;  // Packet automation control.
+	BYTE PKTCTRL0;  // Packet automation control.
+	BYTE ADDR;      // Device address.
+	BYTE PKTLEN;    // Packet length.
 } RF_SETTINGS;
 
 
@@ -78,9 +78,9 @@ typedef struct S_RF_SETTINGS{
 #define BM_XBAR         0x40    // Crossbar Enable
 #define BM_PCA0ME_1     0x01    //      001: CEX0 routed to Port pin.
 #define BM_WEAKPUD      0x80    // Port I/O Weak Pull-up Disable:
-                                //      0: Weak Pull-ups enabled (except for Ports whose I/O are
-                                //         configured as analog input or push-pull output).
-                                //      1: Weak Pull-ups disabled.
+								//      0: Weak Pull-ups enabled (except for Ports whose I/O are
+								//         configured as analog input or push-pull output).
+								//      1: Weak Pull-ups disabled.
 #define BM_SPIEN        0x01    // SPI0 Enable: Active high
 #define BM_MSTEN        0x40    // Master Mode Enable: Active High
 #define BM_NSSMD1       0x08    // Slave Select Mode
@@ -113,9 +113,9 @@ SBIT(SW2, SFR_P2, 0);           // SW2='0' means switch pressed
 #define FOUR_X_CLK_MULT     0x02
 #define INT_OSC_DIV_1       0x83
 #define BM_MULRDY           0x20    // Clock Multiplier Ready. This read-only bit indicates the status of the
-                                    // Clock Multiplier.
-                                    //      0: Clock Multiplier not ready.
-                                    //      1: Clock Multiplier ready (locked).
+									// Clock Multiplier.
+									//      0: Clock Multiplier not ready.
+									//      1: Clock Multiplier ready (locked).
 
 
 // Select the Internal Oscillator as Multiplier input source and disable the watchdog timer
@@ -136,17 +136,17 @@ SBIT(SW2, SFR_P2, 0);           // SW2='0' means switch pressed
 //											//after all the above system clock should be 4 x 12MHz /2 = 24MHz.
 //    } while (0)  
 #define CLOCK_INIT() \
-    do { \
-        UINT8 i; \
-        PCA0MD &= ~0x40; \
-        CLKMUL = INT_OSC; \
-        CLKMUL |= 0x80; \
-        for (i = 0; i < 20; i++); \
-        CLKMUL |= 0xC0; \
-        while (!(CLKMUL & BM_MULRDY)); \
-        CLKSEL |= FOUR_X_CLK_MULT; \
-        OSCICN = INT_OSC_DIV_1; \
-    } while (0) 
+	do { \
+		UINT8 i; \
+		PCA0MD &= ~0x40; \
+		CLKMUL = INT_OSC; \
+		CLKMUL |= 0x80; \
+		for (i = 0; i < 20; i++); \
+		CLKMUL |= 0xC0; \
+		while (!(CLKMUL & BM_MULRDY)); \
+		CLKSEL |= FOUR_X_CLK_MULT; \
+		OSCICN = INT_OSC_DIV_1; \
+	} while (0) 
 
 
 //-----------------------------------------------------------------------------
@@ -170,12 +170,12 @@ SBIT(SW2, SFR_P2, 0);           // SW2='0' means switch pressed
 // NSS is an mcu-output with value from bit NSSMD0, data centered on first edge of SCK period,
 // SCK low in Idle State
 #define SPI_INIT(freq) \
-    do { \
-        SPI0CFG = BM_MSTEN; \
-        SPI0CN = BM_NSSMD1; \
-        SPI0CKR = freq; \
-        SPI_ENABLE(); \
-    } while (0)
+	do { \
+		SPI0CFG = BM_MSTEN; \
+		SPI0CN = BM_NSSMD1; \
+		SPI0CKR = freq; \
+		SPI_ENABLE(); \
+	} while (0)
 
 
 // where freq is one of:
@@ -224,8 +224,8 @@ INTERRUPT_PROTO(Timer2_ISR, INTERRUPT_TIMER2);
 //
 //-----------------------------------------------------------------------------
 void SYSCLK_Init (void) {
-   OSCICN = 0x80;   // Configure internal oscillator for its lowest frequency
-   RSTSRC = 0x04;   // Enable missing clock detector
+	OSCICN = 0x80;   // Configure internal oscillator for its lowest frequency
+	RSTSRC = 0x04;   // Enable missing clock detector
 }
 
 
@@ -244,17 +244,14 @@ void SYSCLK_Init (void) {
 //
 //-----------------------------------------------------------------------------
 void PORT_Init (void) {
-    P2MDOUT = LED1_ | LED2_;                    // Enable two LEDs as a push-pull output at port 2
-    P0MDOUT = SCLK_ | SO_ | SI_ | CSn_;         // Enable push-pull output at port 0
-//  P2MDIN = (~0x01);                           // Set P2.0 as analog input
-    P0SKIP = GDO0_ | GDO2_;                     // Crossbar skips the selected bits, used as analog input/output
-    XBR0 = BM_SPI0E;                            // SPI peripheral selected
-    XBR1 = BM_XBAR | BM_PCA0ME_1;               // Enable crossbar, CEX0 routed to port pin and enable weak pull-ups
-//  XBR1 = BM_XBAR | BM_PCA0ME_1  | BM_WEAKPUD; // Enable crossbar, CEX0 routed to port pin and disable weak pull-ups
-    P2MDIN &= ~0x10;                    // set P2.2 as an analog input
-
-
-
+	P2MDOUT = LED1_ | LED2_;                    // Enable two LEDs as a push-pull output at port 2
+	P0MDOUT = SCLK_ | SO_ | SI_ | CSn_;         // Enable push-pull output at port 0
+	//  P2MDIN = (~0x01);                           // Set P2.0 as analog input
+	P0SKIP = GDO0_ | GDO2_;                     // Crossbar skips the selected bits, used as analog input/output
+	XBR0 = BM_SPI0E;                            // SPI peripheral selected
+	XBR1 = BM_XBAR | BM_PCA0ME_1;               // Enable crossbar, CEX0 routed to port pin and enable weak pull-ups
+	//  XBR1 = BM_XBAR | BM_PCA0ME_1  | BM_WEAKPUD; // Enable crossbar, CEX0 routed to port pin and disable weak pull-ups
+	// P2MDIN &= ~0x10;                    // set P2.2 as an analog input
 }
 
 
@@ -270,13 +267,13 @@ void PORT_Init (void) {
 //
 //-----------------------------------------------------------------------------
 void Timer2_Init (int counts) {
-   TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
-                                       // use SYSCLK/12 as timebase
-   CKCON &= ~0x30;                     // Timer2 clocked based on T2XCLK;
-   TMR2RL = -counts;                   // Init reload values
-   TMR2 = 0xffff;                      // Set to reload immediately
-   ET2 = 1;                            // Enable Timer2 interrupts
-   TR2 = 1;                            // Start Timer2
+	TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
+										// use SYSCLK/12 as timebase
+	CKCON &= ~0x30;                     // Timer2 clocked based on T2XCLK;
+	TMR2RL = -counts;                   // Init reload values
+	TMR2 = 0xffff;                      // Set to reload immediately
+	ET2 = 1;                            // Enable Timer2 interrupts
+	TR2 = 1;                            // Start Timer2
 }
 
 
@@ -293,9 +290,9 @@ void Timer2_Init (int counts) {
 //
 //-----------------------------------------------------------------------------
 INTERRUPT(Timer2_ISR, INTERRUPT_TIMER2) {
-   TF2H = 0;        // Clear Timer2 interrupt flag
-   LED = !LED;      // Change state of LED
-   LED2 = !LED2;    // Change state of LED
+	TF2H = 0;        // Clear Timer2 interrupt flag
+	LED = !LED;      // Change state of LED
+	LED2 = !LED2;    // Change state of LED
 }
 
 
@@ -314,107 +311,107 @@ BYTE xdata asciiString[11];
 
 
 void intToAscii(UINT32 value) {
-    UINT8 i;
-    UINT8 j = 0;
-    UINT8 digit_start = 0;
-    UINT16 digit = 0;
-    UINT32 denom = 1000000000;
+	UINT8 i;
+	UINT8 j = 0;
+	UINT8 digit_start = 0;
+	UINT16 digit = 0;
+	UINT32 denom = 1000000000;
 
-    if (value == 0) {
-        asciiString[0] = '0';
-        asciiString[1] = NULL;
-    } else {
-        for(i = 10; i > 0; i--) {
-            digit = value / denom;
-            if((digit_start == 1) || (digit != 0)) {
-                digit_start = 1;
-                value %= denom;
-                asciiString[j++] = (digit + '0');
-            }
-            denom /= 10;
-        }
-        asciiString[j++] = NULL;
-    }
+	if (value == 0) {
+		asciiString[0] = '0';
+		asciiString[1] = NULL;
+	} else {
+		for(i = 10; i > 0; i--) {
+			digit = value / denom;
+			if((digit_start == 1) || (digit != 0)) {
+				digit_start = 1;
+				value %= denom;
+				asciiString[j++] = (digit + '0');
+			}
+			denom /= 10;
+		}
+		asciiString[j++] = NULL;
+	}
 }
 
 
 //stops for approximatelly timeout usecs
 void halWait(UINT16 timeout) {
-    do {
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-        _nop_();
-    } while (--timeout);
+	do {
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+		_nop_();
+	} while (--timeout);
 }
 
 
 void spi_wait(void) {
 	do { 
-    	while (!SPIF);
-     	SPIF=0;
+		while (!SPIF);
+	 	SPIF=0;
    	} while (0);
 }
 
 
 void halSpiWriteReg(BYTE addr, BYTE value) {
-    NSSMD0 = 0;
-    while (P0_1);
-    SPI0DAT = addr;
-    spi_wait();
-    SPI0DAT = value;
-    spi_wait();
-    NSSMD0 = 1;
+	NSSMD0 = 0;
+	while (P0_1);
+	SPI0DAT = addr;
+	spi_wait();
+	SPI0DAT = value;
+	spi_wait();
+	NSSMD0 = 1;
 }
 
 
 // Write register settings
 void halRfWriteRfSettings(RF_SETTINGS *pRfSettings) {
-    halSpiWriteReg(CCxxx0_FSCTRL1,  pRfSettings->FSCTRL1);
-    halSpiWriteReg(CCxxx0_FSCTRL0,  pRfSettings->FSCTRL0);
-    halSpiWriteReg(CCxxx0_FREQ2,    pRfSettings->FREQ2);
-    halSpiWriteReg(CCxxx0_FREQ1,    pRfSettings->FREQ1);
-    halSpiWriteReg(CCxxx0_FREQ0,    pRfSettings->FREQ0);
-    halSpiWriteReg(CCxxx0_MDMCFG4,  pRfSettings->MDMCFG4);
-    halSpiWriteReg(CCxxx0_MDMCFG3,  pRfSettings->MDMCFG3);
-    halSpiWriteReg(CCxxx0_MDMCFG2,  pRfSettings->MDMCFG2);
-    halSpiWriteReg(CCxxx0_MDMCFG1,  pRfSettings->MDMCFG1);
-    halSpiWriteReg(CCxxx0_MDMCFG0,  pRfSettings->MDMCFG0);
-    halSpiWriteReg(CCxxx0_CHANNR,   pRfSettings->CHANNR);
-    halSpiWriteReg(CCxxx0_DEVIATN,  pRfSettings->DEVIATN);
-    halSpiWriteReg(CCxxx0_FREND1,   pRfSettings->FREND1);
-    halSpiWriteReg(CCxxx0_FREND0,   pRfSettings->FREND0);
-    halSpiWriteReg(CCxxx0_MCSM0 ,   pRfSettings->MCSM0 );
-    halSpiWriteReg(CCxxx0_FOCCFG,   pRfSettings->FOCCFG);
-    halSpiWriteReg(CCxxx0_BSCFG,    pRfSettings->BSCFG);
-    halSpiWriteReg(CCxxx0_AGCCTRL2, pRfSettings->AGCCTRL2);
+	halSpiWriteReg(CCxxx0_FSCTRL1,  pRfSettings->FSCTRL1);
+	halSpiWriteReg(CCxxx0_FSCTRL0,  pRfSettings->FSCTRL0);
+	halSpiWriteReg(CCxxx0_FREQ2,    pRfSettings->FREQ2);
+	halSpiWriteReg(CCxxx0_FREQ1,    pRfSettings->FREQ1);
+	halSpiWriteReg(CCxxx0_FREQ0,    pRfSettings->FREQ0);
+	halSpiWriteReg(CCxxx0_MDMCFG4,  pRfSettings->MDMCFG4);
+	halSpiWriteReg(CCxxx0_MDMCFG3,  pRfSettings->MDMCFG3);
+	halSpiWriteReg(CCxxx0_MDMCFG2,  pRfSettings->MDMCFG2);
+	halSpiWriteReg(CCxxx0_MDMCFG1,  pRfSettings->MDMCFG1);
+	halSpiWriteReg(CCxxx0_MDMCFG0,  pRfSettings->MDMCFG0);
+	halSpiWriteReg(CCxxx0_CHANNR,   pRfSettings->CHANNR);
+	halSpiWriteReg(CCxxx0_DEVIATN,  pRfSettings->DEVIATN);
+	halSpiWriteReg(CCxxx0_FREND1,   pRfSettings->FREND1);
+	halSpiWriteReg(CCxxx0_FREND0,   pRfSettings->FREND0);
+	halSpiWriteReg(CCxxx0_MCSM0 ,   pRfSettings->MCSM0 );
+	halSpiWriteReg(CCxxx0_FOCCFG,   pRfSettings->FOCCFG);
+	halSpiWriteReg(CCxxx0_BSCFG,    pRfSettings->BSCFG);
+	halSpiWriteReg(CCxxx0_AGCCTRL2, pRfSettings->AGCCTRL2);
 	halSpiWriteReg(CCxxx0_AGCCTRL1, pRfSettings->AGCCTRL1);
-    halSpiWriteReg(CCxxx0_AGCCTRL0, pRfSettings->AGCCTRL0);
-    halSpiWriteReg(CCxxx0_FSCAL3,   pRfSettings->FSCAL3);
-    halSpiWriteReg(CCxxx0_FSCAL2,   pRfSettings->FSCAL2);
+	halSpiWriteReg(CCxxx0_AGCCTRL0, pRfSettings->AGCCTRL0);
+	halSpiWriteReg(CCxxx0_FSCAL3,   pRfSettings->FSCAL3);
+	halSpiWriteReg(CCxxx0_FSCAL2,   pRfSettings->FSCAL2);
 	halSpiWriteReg(CCxxx0_FSCAL1,   pRfSettings->FSCAL1);
-    halSpiWriteReg(CCxxx0_FSCAL0,   pRfSettings->FSCAL0);
-    halSpiWriteReg(CCxxx0_FSTEST,   pRfSettings->FSTEST);
-    halSpiWriteReg(CCxxx0_TEST2,    pRfSettings->TEST2);
-    halSpiWriteReg(CCxxx0_TEST1,    pRfSettings->TEST1);
-    halSpiWriteReg(CCxxx0_TEST0,    pRfSettings->TEST0);
-    halSpiWriteReg(CCxxx0_FIFOTHR,  pRfSettings->FIFOTHR);
-    halSpiWriteReg(CCxxx0_IOCFG2,   pRfSettings->IOCFG2);
-    halSpiWriteReg(CCxxx0_IOCFG0,   pRfSettings->IOCFG0);    
-    halSpiWriteReg(CCxxx0_PKTCTRL1, pRfSettings->PKTCTRL1);
-    halSpiWriteReg(CCxxx0_PKTCTRL0, pRfSettings->PKTCTRL0);
-    halSpiWriteReg(CCxxx0_ADDR,     pRfSettings->ADDR);
-    halSpiWriteReg(CCxxx0_PKTLEN,   pRfSettings->PKTLEN);
+	halSpiWriteReg(CCxxx0_FSCAL0,   pRfSettings->FSCAL0);
+	halSpiWriteReg(CCxxx0_FSTEST,   pRfSettings->FSTEST);
+	halSpiWriteReg(CCxxx0_TEST2,    pRfSettings->TEST2);
+	halSpiWriteReg(CCxxx0_TEST1,    pRfSettings->TEST1);
+	halSpiWriteReg(CCxxx0_TEST0,    pRfSettings->TEST0);
+	halSpiWriteReg(CCxxx0_FIFOTHR,  pRfSettings->FIFOTHR);
+	halSpiWriteReg(CCxxx0_IOCFG2,   pRfSettings->IOCFG2);
+	halSpiWriteReg(CCxxx0_IOCFG0,   pRfSettings->IOCFG0);    
+	halSpiWriteReg(CCxxx0_PKTCTRL1, pRfSettings->PKTCTRL1);
+	halSpiWriteReg(CCxxx0_PKTCTRL0, pRfSettings->PKTCTRL0);
+	halSpiWriteReg(CCxxx0_ADDR,     pRfSettings->ADDR);
+	halSpiWriteReg(CCxxx0_PKTLEN,   pRfSettings->PKTLEN);
 }
 
 
@@ -437,13 +434,13 @@ void halRfWriteRfSettings(RF_SETTINGS *pRfSettings) {
 //-----------------------------------------------------------------------------
 
 void halRfSendPacket(BYTE *txBuffer, UINT8 size) {
-    halSpiWriteBurstReg(CCxxx0_TXFIFO, txBuffer, size);
-    halSpiStrobe(CCxxx0_STX);
+	halSpiWriteBurstReg(CCxxx0_TXFIFO, txBuffer, size);
+	halSpiStrobe(CCxxx0_STX);
 	//LED = !LED; 
-    // Wait for GDO0 to be set -> sync transmitted
-    while (!GDO0_PIN);
-    // Wait for GDO0 to be cleared -> end of packet
-    while (GDO0_PIN);
+	// Wait for GDO0 to be set -> sync transmitted
+	while (!GDO0_PIN);
+	// Wait for GDO0 to be cleared -> end of packet
+	while (GDO0_PIN);
 }
 
 
@@ -463,16 +460,16 @@ void halRfSendPacket(BYTE *txBuffer, UINT8 size) {
 //          Number of bytes to be written to the subsequent CCxxx0 registers.   
 //-----------------------------------------------------------------------------
 void halSpiWriteBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
-    UINT8 i;
-    NSSMD0 = 0;
-    while (P0_1);
-    SPI0DAT = addr | WRITE_BURST;
-    spi_wait();
-    for (i = 0; i < count; i++) {
-        SPI0DAT = buffer[i];
-        spi_wait();
-    }
-    NSSMD0 = 1;
+	UINT8 i;
+	NSSMD0 = 0;
+	while (P0_1);
+	SPI0DAT = addr | WRITE_BURST;
+	spi_wait();
+	for (i = 0; i < count; i++) {
+		SPI0DAT = buffer[i];
+		spi_wait();
+	}
+	NSSMD0 = 1;
 }
 
 
@@ -488,11 +485,11 @@ void halSpiWriteBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
 //          Strobe command
 //-----------------------------------------------------------------------------
 void halSpiStrobe(BYTE strobe) {
-    NSSMD0 = 0;
-    while (P0_1);
-    SPI0DAT = strobe;
-    spi_wait();
-    NSSMD0 = 1;
+	NSSMD0 = 0;
+	while (P0_1);
+	SPI0DAT = strobe;
+	spi_wait();
+	NSSMD0 = 1;
 }
 
 
@@ -511,16 +508,16 @@ void halSpiStrobe(BYTE strobe) {
 //          Value of the accessed CCxxx0 status register.
 //-----------------------------------------------------------------------------
 BYTE halSpiReadStatus(BYTE addr) {
-    UINT8 x;
-    NSSMD0 = 0;
-    while (P0_1);
-    SPI0DAT = (addr | READ_BURST);
-    spi_wait();
-    SPI0DAT = 0;
-    spi_wait();
-    x = SPI0DAT;
-    NSSMD0 = 1;
-    return x;
+	UINT8 x;
+	NSSMD0 = 0;
+	while (P0_1);
+	SPI0DAT = (addr | READ_BURST);
+	spi_wait();
+	SPI0DAT = 0;
+	spi_wait();
+	x = SPI0DAT;
+	NSSMD0 = 1;
+	return x;
 }
 
 
@@ -539,16 +536,16 @@ BYTE halSpiReadStatus(BYTE addr) {
 //          Value of the accessed CCxxx0 register.
 //-----------------------------------------------------------------------------
 BYTE halSpiReadReg(BYTE addr) {
-    UINT8 x;
-    NSSMD0 = 0;
-    while (P0_1);
-    SPI0DAT = (addr | READ_SINGLE);
-    spi_wait();
-    SPI0DAT = 0;
-    spi_wait();
-    x = SPI0DAT;
-    NSSMD0 = 1;
-    return x;
+	UINT8 x;
+	NSSMD0 = 0;
+	while (P0_1);
+	SPI0DAT = (addr | READ_SINGLE);
+	spi_wait();
+	SPI0DAT = 0;
+	spi_wait();
+	x = SPI0DAT;
+	NSSMD0 = 1;
+	return x;
 }
 
 
@@ -568,17 +565,17 @@ BYTE halSpiReadReg(BYTE addr) {
 //          Number of bytes to be written to the subsequent CCxxx0 registers.
 //-----------------------------------------------------------------------------
 void halSpiReadBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
-    UINT8 i;
-    NSSMD0 = 0;
-    while (P0_1);
-    SPI0DAT = (addr | READ_BURST);
-    spi_wait();  
-    for (i = 0; i < count; i++) {
-        SPI0DAT = 0;
-        spi_wait();
-        buffer[i] = SPI0DAT;
-    }
-    NSSMD0 = 1;
+	UINT8 i;
+	NSSMD0 = 0;
+	while (P0_1);
+	SPI0DAT = (addr | READ_BURST);
+	spi_wait();  
+	for (i = 0; i < count; i++) {
+		SPI0DAT = 0;
+		spi_wait();
+		buffer[i] = SPI0DAT;
+	}
+	NSSMD0 = 1;
 }
 
 
@@ -612,67 +609,67 @@ void halSpiReadBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
 BYTE RSSI_Measurement;
 
 BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length) {
-    BYTE status[2];
-    UINT8 packetLength;
+	BYTE status[2];
+	UINT8 packetLength;
 
-    halSpiStrobe(CCxxx0_SRX);
+	halSpiStrobe(CCxxx0_SRX);
 
-    // Wait for GDO0 to be set -> sync received
-    while (!GDO0_PIN);
+	// Wait for GDO0 to be set -> sync received
+	while (!GDO0_PIN);
 
-    // Wait for GDO0 to be cleared -> end of packet
-    while (GDO0_PIN);
+	// Wait for GDO0 to be cleared -> end of packet
+	while (GDO0_PIN);
 
-    // This status register is safe to read since it will not be updated after
-    // the packet has been received (See the CC1100 and 2500 Errata Note)
-    if ((halSpiReadStatus(CCxxx0_RXBYTES) & BYTES_IN_RXFIFO)) {
+	// This status register is safe to read since it will not be updated after
+	// the packet has been received (See the CC1100 and 2500 Errata Note)
+	if ((halSpiReadStatus(CCxxx0_RXBYTES) & BYTES_IN_RXFIFO)) {
 
-        // Read length byte
-        packetLength = halSpiReadReg(CCxxx0_RXFIFO);
-    
-        // Read data from RX FIFO and store in rxBuffer
-        if (packetLength <= *length) {
-            halSpiReadBurstReg(CCxxx0_RXFIFO, rxBuffer, packetLength); 
-            *length = packetLength;
-        
-            // Read the 2 appended status bytes (status[0] = RSSI, status[1] = LQI)
-            halSpiReadBurstReg(CCxxx0_RXFIFO, status, 2); 
-            RSSI_Measurement=status[0];
-            
-            // MSB of LQI is the CRC_OK bit
-            return (status[LQI] & CRC_OK);
-        } else {
-            *length = packetLength;
+		// Read length byte
+		packetLength = halSpiReadReg(CCxxx0_RXFIFO);
+	
+		// Read data from RX FIFO and store in rxBuffer
+		if (packetLength <= *length) {
+			halSpiReadBurstReg(CCxxx0_RXFIFO, rxBuffer, packetLength); 
+			*length = packetLength;
+		
+			// Read the 2 appended status bytes (status[0] = RSSI, status[1] = LQI)
+			halSpiReadBurstReg(CCxxx0_RXFIFO, status, 2); 
+			RSSI_Measurement=status[0];
+			
+			// MSB of LQI is the CRC_OK bit
+			return (status[LQI] & CRC_OK);
+		} else {
+			*length = packetLength;
 
-            // Make sure that the radio is in IDLE state before flushing the FIFO
-            // (Unless RXOFF_MODE has been changed, the radio should be in IDLE state at this point) 
-            halSpiStrobe(CCxxx0_SIDLE);
+			// Make sure that the radio is in IDLE state before flushing the FIFO
+			// (Unless RXOFF_MODE has been changed, the radio should be in IDLE state at this point) 
+			halSpiStrobe(CCxxx0_SIDLE);
 
-            // Flush RX FIFO
-            halSpiStrobe(CCxxx0_SFRX);
-            return FALSE;
-        }
-    } else
-        return FALSE;
+			// Flush RX FIFO
+			halSpiStrobe(CCxxx0_SFRX);
+			return FALSE;
+		}
+	} else
+		return FALSE;
 }
 
 
 void resetRadio(void){
-    do { 
-        NSSMD0 = 0; 
-        while (P0_1);           //this is necessary for the specific cc2500 radio - see cc2500 manual page 21
-        SPI0DAT = CCxxx0_SRES; 	//reset cc2500 chip 
-        spi_wait();				//wait until data have been tranmitted through the spi interface
-        NSSMD0 = 1; 			//tranmission complete - inform slave node (i.e. the cc2500)
-    } while (0);
+	do { 
+		NSSMD0 = 0; 
+		while (P0_1);           //this is necessary for the specific cc2500 radio - see cc2500 manual page 21
+		SPI0DAT = CCxxx0_SRES; 	//reset cc2500 chip 
+		spi_wait();				//wait until data have been tranmitted through the spi interface
+		NSSMD0 = 1; 			//tranmission complete - inform slave node (i.e. the cc2500)
+	} while (0);
 }
 
 
 void waitRadioForResponce(void) {
-    NSSMD0 = 1;
-    halWait(1); 
-    NSSMD0 = 0;
-    halWait(1); 
-    NSSMD0 = 1; 
-    halWait(41); 
+	NSSMD0 = 1;
+	halWait(1); 
+	NSSMD0 = 0;
+	halWait(1); 
+	NSSMD0 = 1; 
+	halWait(41); 
 }
