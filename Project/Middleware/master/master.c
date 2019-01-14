@@ -2,7 +2,7 @@
 #include "stdio.h"
 
 #define BAUDRATE 9600
-#define NODES_NUMBER 2
+#define NODES_NUMBER 5
 
 // Radio settings
 // Chipcon
@@ -120,16 +120,16 @@ void UART0_Init(void) {
 	TMOD |= 0x20;
 	TR1 = 1;  // START Timer1
 	TI0 = 1;  // Indicate TX0 ready
-	ES0 = 1;
+//	ES0 = 1;
 }
 
 void ALARM_Init(void) {
-	// XBR1      |= 0x41;    // Route CEX0 to port pin
-	// P0MDOUT   |= 0x03;    // Set P0.0, P0.1 to push-pull
-	// PCA0MD    |= 0x08;    // Set PCA0 Clock source to system clock
-	// PCA0CPM0  |= 0x42;    // Enable 8bit PWM Signal on CEX0
-	// PCA0CPL0  |= 0;       // Unused on 8bit PWM
-	// PCA0CPH0  |= 127;     // Set PCA0 Compare Flag High byte to 128 so it generates a 50% PWM
+	XBR1      |= 0x41;    // Route CEX0 to port pin
+	P0MDOUT   |= 0x03;    // Set P0.0, P0.1 to push-pull
+	PCA0MD    |= 0x08;    // Set PCA0 Clock source to system clock
+	PCA0CPM0  |= 0x42;    // Enable 8bit PWM Signal on CEX0
+	PCA0CPL0  |= 0;       // Unused on 8bit PWM
+	PCA0CPH0  |= 127;     // Set PCA0 Compare Flag High byte to 128 so it generates a 50% PWM
 }
 
 void setup(void) {
@@ -151,8 +151,10 @@ void setup(void) {
 
 	// Timer2_Init (SYSCLK / 12 / 10);           // Init Timer2 to generate
 	// interrupts at a 10Hz rate.
-	ALARM_Init();
+	// ALARM_Init();
 	EA = 1;  // enable global interrupts
+	printf("\033[2J");	// Clear Screen
+	printf("\033[0;0H");	// Move cursor to 0,0
 }
 
 void txMode(void) {
@@ -170,16 +172,33 @@ void request(void) {
 	int i;
 	uint16_t measurements[5] = {0, 0, 0, 0, 0};
 	// printf("mpika stin request\n");
+
+//	printf("Broadcast... ");
+	txBuffer[1] = 0;
+	txMode();
+	LED = 1;
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+//	halWait(30000);
+	LED = 0;
+//	printf("Success!\n");
+
+
 	for (i = 0; i < NODES_NUMBER; i++) {
 		// printf("i= %d \n", i);
-		txBuffer[1] = (BYTE)i;
+		txBuffer[1] = (BYTE) i + 1;
 		// txBuffer[1]=0x02;
-		// printf("Requesting from: %d ... ", (int) txBuffer[1]);
+//		printf("Requesting from: %d... ", (int) txBuffer[1]);
 		txMode();
-		// printf("Requested\n", (int) txBuffer[1]);
+//		printf("Success!\n");
 
 		rxMode();
-		// printf("Received from: %d\n", (int) rxBuffer[2]);
+//		printf("Received from: %d\n", (int) rxBuffer[2]);
 		mV = (rxBuffer[1] << 8) | rxBuffer[0];
 		measurements[i] = mV;
 		// printf("received voltage= %u  from id:  mV\n", mV);
@@ -214,10 +233,15 @@ void UART0_Interrupt(void) interrupt 4 {
 }
 
 void loop(void) {
-	// txMode();
-	// rxMode();
+//	 txMode();
+//	 rxMode();
 	request();
 	// ALARM_PLAY(1);
+//	LED = 1;
+//	printf("Works!\n");
+//	halWait(30000);
+//	LED = 0;
+//	halWait(30000);
 }
 
 void main(void) {
