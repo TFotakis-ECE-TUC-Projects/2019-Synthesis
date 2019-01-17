@@ -1,4 +1,5 @@
 {% extends 'Base/base.html' %}
+{% load static %}
 {% block body %}
 	<div class="container">
 		<h1 class="text-center text-white">Smoke Detection</h1>
@@ -48,8 +49,16 @@
 					200: function (response) {
 						console.log(response);
 						var data = response.tables;
+                        var smoke = false;
+                        var audio = new Audio("{% static "fire.mp3" %}");
 						for (var i = 0; i < data.length; i++) {
 							$('#table' + (i + 1)).css('background-color', data[i] ? 'red' : 'green');
+                            if(data[i]==true){
+                                smoke = true;
+                            }
+                            if(smoke==true){
+                                audio.play();
+                            }
 						}
 					},
 					404: function () {
@@ -61,7 +70,7 @@
 		getData();
 		setInterval(
 			getData,
-			5000
+			500
 		);
 	</script>
 {% endblock %}
