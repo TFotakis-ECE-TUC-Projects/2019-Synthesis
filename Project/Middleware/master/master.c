@@ -73,7 +73,7 @@ RF_SETTINGS code rfSettings = {
 };
 
 
-BYTE code paTable = 0xFF;	// PATABLE (0 dBm output power)
+BYTE code paTable = 0xFF;	// PATABLE (1 dBm output power)
 
 
 BYTE xdata txBuffer[] = {1, 0};
@@ -154,8 +154,8 @@ void setup(void) {
 	// interrupts at a 10Hz rate.
 	// ALARM_Init();
 	EA = 1;  // enable global interrupts
-	printf("\033[2J");	// Clear Screen
-	printf("\033[0;0H");	// Move cursor to 0,0
+//	printf("\033[2J");	// Clear Screen
+//	printf("\033[0;0H");	// Move cursor to 0,0
 }
 
 void txMode(void) {
@@ -206,7 +206,7 @@ void request(void) {
 		// printf("%u ", mV);
 	}
 	// printf("\n");
-	printf("%u %u %u %u %u\n", measurements[0], measurements[1], measurements[2], measurements[3], measurements[4]);
+	printf("%d %d %d %d %d\n", measurements[0], measurements[1], measurements[2], measurements[3], measurements[4]);
 }
 
 void ALARM_PLAY(uint8_t play){

@@ -1,14 +1,13 @@
 #include "radio.h"
 
-#define BAUDRATE 115200   // Baud rate of UART in bps
 #define ID 1              // ID of slave
-#define V_REFERENCE 4000  // Voltage Reference for the ADC in mV
+#define DROP_AMBIENT_LIGHT
 
 // Radio settings
 // Chipcon
 // Product = CC2500
 // Chip version = E   (VERSION = 0x03)
-// Crystal accuracy = 10 ppm
+// Crystal accuracy = 10 ppm_
 // X-tal frequency = 26 MHz
 // RF output power = 1 dBm
 // RX filterbandwidth = 541.666667 kHz
@@ -73,23 +72,25 @@ RF_SETTINGS code rfSettings = {
 };
 
 
-BYTE code paTable = 0xFF;	// PATABLE (0 dBm output power)
+BYTE code paTable = 0xFF;	// PATABLE (1 dBm output power)
 
 
 BYTE xdata txBuffer[] = {3, 0, 1, 2};
 BYTE xdata rxBuffer[61];  // Length byte  + 2 status bytes are not stored in
                           // this buffer
-UINT8 xdata mode = MODE_NOT_SET;
-UINT32 packetsReceived = 0;
-UINT32 packetsSent = 0;
+// UINT8 xdata mode = MODE_NOT_SET;
+// UINT32 packetsReceived = 0;
+// UINT32 packetsSent = 0;
 UINT8 length;
 UINT8 conversion_ended = 0;
-UINT8 flag_req;
+// UINT8 flag_req;
 UINT8 action = 0;
-UINT16 counter = 0;
-UINT16 mV;
-BYTE mVlow;
-BYTE mVhigh;
+long accumulator = 0;     // accumulator for averaging
+UINT16 measurements = 2048;  // measurement counter
+// UINT16 counter = 0;
+// UINT16 mV;
+// BYTE mVlow;
+// BYTE mVhigh;
 
 #define _LASER 0x01
 SBIT(LASER, SFR_P2, 0);  // LASER='1' means ON
@@ -177,40 +178,36 @@ void startConversion(void) {
 }
 
 void ADC0_ISR(void) interrupt 10 {
-	static unsigned long accumulator = 0;     // accumulator for averaging
-	static unsigned int measurements = 2048;  // measurement counter
+
 	unsigned long result = 0;
 
 	LED = 1;
-	counter++;
-	accumulator += ADC0;
-	measurements--;
 
+	#ifndef DROP_AMBIENT_LIGHT
+	accumulator += ADC0;
+	#else
+	accumulator += measurements > 1024 ? ADC0 : -ADC0;
+	LASER = measurements > 1024;
+	#endif
+
+	measurements--;
 	if (measurements) {
 		AD0INT = 0;
 		return;
 	}
 
-	TR2 = 0;
-	measurements = 2048;
+	#ifndef DROP_AMBIENT_LIGHT
 	result = accumulator / 2048;
-	accumulator = 0;
+	#else
+	result = accumulator / 1024;
+	#endif
 
-	// The 10-bit ADC value is averaged across 2048 measurements.
-	// The measured voltage applied to P1.4 is then:
-	//
-	//                           Vref (mV)
-	//   measurement (mV) =   --------------- * result (bits)
-	//                       (2^10)-1 (bits)
-	//   mV = result * V_REFERENCE / 1023;
-	mV = result;
+	TR2 = 0;								// Stop Timer2
+	measurements = 2048;					// Initialise measurements for next conversion
+	accumulator = 0;						// Initialise accumulator for next conversion
 
-	mVlow = mV & 0x00ff;
-	mVhigh = (mV >> 8) & 0x00ff;
-	txBuffer[1] = mVlow;
-	txBuffer[2] = mVhigh;
-
-	// txMode();
+	txBuffer[1] = result & 0x00ff;			// Assign Result's Low Byte
+	txBuffer[2] = (result >> 8) & 0x00ff;	// Assign Result's High Byte
 
 	AD0INT = 0;
 	conversion_ended = 1;
