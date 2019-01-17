@@ -2,7 +2,8 @@
 #include "stdio.h"
 
 #define BAUDRATE 9600
-#define NODES_NUMBER 5
+#define NODES_NUMBER 1
+//#define WDT_ENABLED
 
 // Radio settings
 // Chipcon
@@ -133,9 +134,20 @@ void ALARM_Init(void) {
 	PCA0CPH0  |= 127;     // Set PCA0 Compare Flag High byte to 128 so it generates a 50% PWM
 }
 
+void WDT_Init(void) {
+	PCA0CN |=  0x40;            // PCA counter enable
+	PCA0L   = 0x00;            // Set lower byte of PCA counter to 0
+	PCA0H   = 0x00;            // Set higher byte of PCA counter to 0
+	PCA0CPL4= 0xFF;            // Write offset for the WDT
+	PCA0MD |= 0x40;				// Enable watchdog timer
+}
+
+void WDT_Stop(void) {
+	PCA0MD &= ~0x40;			// Disable watchdog timer
+}
+
 void setup(void) {
-	// PCA0MD &= ~0x40;							//
-	// Disable watchdog timer
+
 	// SYSCLK_Init ();							//
 	// Initialize system clock to 24.5MHz
 	CLOCK_INIT();          // Initialize clock
@@ -166,7 +178,13 @@ void txMode(void) {
 
 void rxMode(void) {
 	length = sizeof(rxBuffer);
+	#ifdef WDT_ENABLED
+	WDT_Init();
+	#endif
 	halRfReceivePacket(rxBuffer, &length);
+	#ifdef WDT_ENABLED
+	WDT_Stop();
+	#endif
 }
 
 void request(void) {
