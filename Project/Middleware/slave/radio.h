@@ -244,10 +244,11 @@ void SYSCLK_Init (void) {
 //
 //-----------------------------------------------------------------------------
 void PORT_Init (void) {
-    P2MDOUT = LED1_ | LED2_;                    // Enable two LEDs as a push-pull output at port 2
+//    P2MDOUT |= LED1_;                    // Enable LED1 as a push-pull output at port 2
+//    P2MDOUT |= LED2_;                    // Enable LED2 as a push-pull output at port 2
     P0MDOUT = SCLK_ | SO_ | SI_ | CSn_;         // Enable push-pull output at port 0
-    //P2MDIN = (~0x01);                           // Set P2.0 as analog input
-    P1MDIN &= ~0x10;
+    P2MDIN &= ~0x08;                           // Set P2.3 as analog input
+//    P1MDIN &= ~0x10;
     P0SKIP = GDO0_ | GDO2_;                     // Crossbar skips the selected bits, used as analog input/output
     XBR0 = BM_SPI0E;                            // SPI peripheral selected
     XBR1 = BM_XBAR | BM_PCA0ME_1;               // Enable crossbar, CEX0 routed to port pin and enable weak pull-ups
