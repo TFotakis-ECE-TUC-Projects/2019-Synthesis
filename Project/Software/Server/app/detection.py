@@ -5,18 +5,22 @@ import time
 import serial
 import json
 import pylab
+import random
+import subprocess
 
-ser = serial.Serial('/dev/ttyUSB0', 9600)
+#ser = serial.Serial('/dev/ttyUSB0', 9600)
 
-q = Queue()
 xq = Queue()
 vq = Queue()
-Data = [True, True, True, True, True, True]
+Data = [True]*6
 
 table_map = {(0, 2): 0, (0, 3): 2, (0, 4): 4, (1, 2): 1, (1, 3): 3, (1, 4): 5}
 
+def playdatshit():
+    subprocess.call(["ffplay", "-nodisp", "-autoexit", "-loglevel", "panic", "./app/fire.mp3"])
 
 def fetch_uart():
+    global Data
     x = []
     vals = [[], [], [], [], []]
 
@@ -55,7 +59,10 @@ def fetch_uart():
                 counters[i] = memory 
                 data[i] = True
                 flag = True
-        q.put(data)
+        #if flag:
+        #    t4 = Thread(target=playdatshit)
+        #    t4.start()
+        Data = data
         print(values)
         print(data)
         logger = open("log.data", "a")
@@ -71,17 +78,29 @@ def plotter():
         pylab.legend(["1", "2", "3", "4", "5"])
         pylab.pause(0.0001)
 
-t = Thread(target=fetch_uart)
-t.start()
 
-t2 = Thread(target=plotter)
-t2.start()
+def randomshit():
+    global Data
+    while(True):
+        Data = [random.random()>0.5 for _ in range(6)]
+        flag = False
+        for i in range(6):
+            if Data[i]:
+                flag = True
+        if flag:
+            t4 = Thread(target=playdatshit)
+            t4.start()
+        time.sleep(0.5)
 
+#t = Thread(target=fetch_uart)
+#t.start()
+
+#t2 = Thread(target=plotter)
+#t2.start()
+
+t3 = Thread(target=randomshit)
+t3.start()
 
 def getData():
     global Data
-    if q.empty():
-        return {'tables': Data}
-    else:
-        Data = q.get()
-        return {'tables': Data}
+    return {'tables': Data}
