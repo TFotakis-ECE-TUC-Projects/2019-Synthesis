@@ -1,10 +1,12 @@
 #include "radio.h"
-#include "stdio.h"
 
 #define RECEIVE_CHANNEL 0x01
 #define TRANSMIT_CHANNEL 0x00
 #define BAUDRATE 9600
 #define NODES_NUMBER 5
+#define TIMEOUT_COUNT 5
+#define TIMEOUT_ENABLE
+//#define DEBUG_MSG
 
 // Radio settings
 // Chipcon
@@ -83,6 +85,10 @@ BYTE xdata rxBuffer[61];  // Length byte  + 2 status bytes are not stored in
 						  // this buffer
 
 UINT8 length;
+UINT8 timeout = 0;
+UINT16 timer2_interrupt_count = 0;
+UINT16 measurements[5] = {0, 0, 0, 0, 0};
+UINT8 received=0;
 
 void UART0_Init(void) {
 	P0MDOUT |= 0x10;  // enable UTX as push-pull output
@@ -118,6 +124,27 @@ void UART0_Init(void) {
 	TI0 = 1;  // Indicate TX0 ready
 }
 
+void Timer2_Init () {
+   TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
+                                       // use SYSCLK/12 as timebase
+
+   CKCON &= ~0x30;                     // Timer2 clocked based on T2XCLK;
+
+   TMR2RLH = 0x4e;
+   TMR2RLL = 0x20;
+
+   TMR2 = 0xffff;                      // Set to reload immediately
+   timer2_interrupt_count = 0;
+   timeout = 0;
+   ET2 = 1;                            // Enable Timer2 interrupts
+   TR2 = 1;                            // Start Timer2
+}
+
+void Timer2_Stop(void){
+	TR2 = 0;
+	timeout = 0;
+}
+
 void setup(void) {
 
 	// SYSCLK_Init ();							//
@@ -138,8 +165,11 @@ void setup(void) {
 	// interrupts at a 10Hz rate.
 	// ALARM_Init();
 	EA = 1;  // enable global interrupts
-//	printf("\033[2J");	// Clear Screen
-//	printf("\033[0;0H");	// Move cursor to 0,0
+
+	#ifdef DEBUG_MSG
+	printf("\033[2J");	// Clear Screen
+	printf("\033[0;0H");	// Move cursor to 0,0
+	#endif
 }
 
 void txMode(void) {
@@ -152,24 +182,26 @@ void txMode(void) {
 void rxMode(void) {
     halSpiWriteReg(CCxxx0_CHANNR, RECEIVE_CHANNEL);
 	length = sizeof(rxBuffer);
-	halRfReceivePacket(rxBuffer, &length);
+	#ifdef TIMEOUT_ENABLE
+	Timer2_Init();
+	#endif
+	received = halRfReceivePacket(rxBuffer, &length, &timeout);
+//	printf("RECEIVED %s\n", received?"TRUE":"FALSE");
+	#ifdef TIMEOUT_ENABLE
+	Timer2_Stop();
+	#endif
 }
 
 void request(void) {
 	int i;
-	uint16_t measurements[5] = {0, 0, 0, 0, 0};
 
-//	printf("Broadcast... ");
+	#ifdef DEBUG_MSG
+	printf("Broadcast... ");
+	#endif
+
 	LED = 1;
 	txBuffer[1] = 0;
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
+//	halWait(30000);
 //	halWait(30000);
 //	halWait(30000);
 //	halWait(30000);
@@ -188,37 +220,47 @@ void request(void) {
 	halWait(30000);
 	halWait(30000);
 	LED = 0;
-//	printf("Success!\n");
 
+	#ifdef DEBUG_MSG
+	printf("Success!\n");
+	#endif
 
 	for (i = 0; i < NODES_NUMBER; i++) {
-		// printf("i= %d \n", i);
 		txBuffer[1] = (BYTE) i + 1;
-		// txBuffer[1]=0x02;
-//		printf("Requesting from: %d... ", (int) txBuffer[1]);
+
+		#ifdef DEBUG_MSG
+		printf("Requesting from: %d... \n", (int) txBuffer[1]);
+		#endif
+
 		txMode();
 //		printf("Success!\n");
-
 		rxMode();
-//		printf("Received from: %d\n", (int) rxBuffer[2]);
+		if(!received) continue;
+
+		#ifdef DEBUG_MSG
+		printf("Received from: %d\n", (int) rxBuffer[2]);
+		#endif
+
 		measurements[i] = (rxBuffer[1] << 8) | rxBuffer[0];
-		// printf("received voltage= %u  from id:  mV\n", mV);
-		// printf("%u ", mV);
 	}
-	// printf("\n");
 	printf("%d %d %d %d %d\n", measurements[0], measurements[1], measurements[2], measurements[3], measurements[4]);
 }
 
+INTERRUPT(Timer2_ISR, INTERRUPT_TIMER2) {
+	TF2H = 0; // Clear Timer2 interrupt flag
+	timer2_interrupt_count++;
+	//   printf("Timer2 Interrupt Count: %u\n", timer2_interrupt_count);
+	if(timer2_interrupt_count >= TIMEOUT_COUNT){
+		timer2_interrupt_count = 0;
+		timeout = 1;
+		#ifdef DEBUG_MSG
+		printf("-------- TIMEOUT --------\n");
+		#endif
+	}
+}
+
 void loop(void) {
-//	 txMode();
-//	 rxMode();
 	request();
-	// ALARM_PLAY(1);
-//	LED = 1;
-//	printf("Works!\n");
-//	halWait(30000);
-//	LED = 0;
-//	halWait(30000);
 }
 
 void main(void) {

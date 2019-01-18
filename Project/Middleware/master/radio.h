@@ -13,6 +13,7 @@
 #include "C8051F320_defs.h"            // SFR declarations
 #include "common.h"
 #include "cc2500.h"
+#include "stdio.h"
 
 
 //-----------------------------------------------------------------------------
@@ -201,15 +202,15 @@ void halSpiStrobe(BYTE strobe);
 BYTE halSpiReadStatus(BYTE addr);
 BYTE halSpiReadReg(BYTE addr);
 void halSpiReadBurstReg(BYTE addr, BYTE *buffer, BYTE count);
-BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length);
+BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length, UINT8 *timeout);
 
 void halWait(UINT16 timeout);
 void intToAscii(UINT32 value);
 void SYSCLK_Init (void);
 void PORT_Init (void);
-void Timer2_Init (int counts);
+//void Timer2_Init (int counts);
 
-INTERRUPT_PROTO(Timer2_ISR, INTERRUPT_TIMER2);
+//INTERRUPT_PROTO(Timer2_ISR, INTERRUPT_TIMER2);
 
 
 //-----------------------------------------------------------------------------
@@ -266,15 +267,15 @@ void PORT_Init (void) {
 // interval specified by <counts> using SYSCLK/48 as its time base.
 //
 //-----------------------------------------------------------------------------
-void Timer2_Init (int counts) {
-	TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
-										// use SYSCLK/12 as timebase
-	CKCON &= ~0x30;                     // Timer2 clocked based on T2XCLK;
-	TMR2RL = -counts;                   // Init reload values
-	TMR2 = 0xffff;                      // Set to reload immediately
-	ET2 = 1;                            // Enable Timer2 interrupts
-	TR2 = 1;                            // Start Timer2
-}
+//void Timer2_Init (int counts) {
+//	TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
+//										// use SYSCLK/12 as timebase
+//	CKCON &= ~0x30;                     // Timer2 clocked based on T2XCLK;
+//	TMR2RL = -counts;                   // Init reload values
+//	TMR2 = 0xffff;                      // Set to reload immediately
+//	ET2 = 1;                            // Enable Timer2 interrupts
+//	TR2 = 1;                            // Start Timer2
+//}
 
 
 //-----------------------------------------------------------------------------
@@ -289,11 +290,11 @@ void Timer2_Init (int counts) {
 // This routine changes the state of the LED whenever Timer2 overflows.
 //
 //-----------------------------------------------------------------------------
-INTERRUPT(Timer2_ISR, INTERRUPT_TIMER2) {
-	TF2H = 0;        // Clear Timer2 interrupt flag
-	LED = !LED;      // Change state of LED
-	LED2 = !LED2;    // Change state of LED
-}
+//INTERRUPT(Timer2_ISR, INTERRUPT_TIMER2) {
+//	TF2H = 0;        // Clear Timer2 interrupt flag
+//	LED = !LED;      // Change state of LED
+//	LED2 = !LED2;    // Change state of LED
+//}
 
 
 //-----------------------------------------------------------------------------
@@ -580,7 +581,7 @@ void halSpiReadBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
 
 
 //-----------------------------------------------------------------------------
-//  BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length)
+//  BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length, UINT8 *timeout)
 //
 //  DESCRIPTION:
 //      This function can be used to receive a packet of variable packet length (first byte in the packet
@@ -608,17 +609,31 @@ void halSpiReadBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
 //-----------------------------------------------------------------------------
 BYTE RSSI_Measurement;
 
-BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length) {
+BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length, UINT8 *timeout) {
 	BYTE status[2];
 	UINT8 packetLength;
-
+	BYTE xdata rxBufferClear[70];
 	halSpiStrobe(CCxxx0_SRX);
 
 	// Wait for GDO0 to be set -> sync received
-	while (!GDO0_PIN);
-
+	while (!GDO0_PIN && !*timeout);
+//	while (!GDO0_PIN);
+//	if(*timeout) return FALSE;
 	// Wait for GDO0 to be cleared -> end of packet
-	while (GDO0_PIN);
+	while (GDO0_PIN && !*timeout);
+//	while (GDO0_PIN);
+	if(*timeout) {
+//		packetLength = halSpiReadReg(CCxxx0_RXFIFO);
+//		halSpiReadBurstReg(CCxxx0_RXFIFO, rxBufferClear, packetLength + 2);
+
+		// Make sure that the radio is in IDLE state before flushing the FIFO
+		// (Unless RXOFF_MODE has been changed, the radio should be in IDLE state at this point)
+		halSpiStrobe(CCxxx0_SIDLE);
+
+		// Flush RX FIFO
+		halSpiStrobe(CCxxx0_SFRX);
+		return FALSE;
+	}
 
 	// This status register is safe to read since it will not be updated after
 	// the packet has been received (See the CC1100 and 2500 Errata Note)
@@ -635,7 +650,7 @@ BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length) {
 			// Read the 2 appended status bytes (status[0] = RSSI, status[1] = LQI)
 			halSpiReadBurstReg(CCxxx0_RXFIFO, status, 2);
 			RSSI_Measurement=status[0];
-
+//			if(*timeout) return FALSE;
 			// MSB of LQI is the CRC_OK bit
 			return (status[LQI] & CRC_OK);
 		} else {
