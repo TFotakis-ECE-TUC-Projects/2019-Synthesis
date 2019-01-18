@@ -49,11 +49,9 @@ SBIT(SW2, SFR_P2, 0);                  // SW2='0' means switch pressed
 
 void SYSCLK_Init (void);
 void PORT_Init (void);
-void Timer3_Init (int counts);
+void Timer2_Init (int counts);
 
-INTERRUPT_PROTO(Timer3_ISR, INTERRUPT_TIMER3);
-
-int glob_counter=1;
+INTERRUPT_PROTO(Timer2_ISR, INTERRUPT_TIMER2);
 
 //-----------------------------------------------------------------------------
 // MAIN Routine
@@ -63,14 +61,9 @@ void main (void)
    PCA0MD &= ~0x40;                    // Disable watchdog timer
 
    SYSCLK_Init ();                     // Initialize system clock to
-                                       // 12/8=1.5 MHz
-
-
-
-  PORT_Init ();  		// Initialize crossbar and GPIO
-
-
-   Timer3_blink (1);     // Init Timer2 to generate
+                                       // 24.5MHz
+   PORT_Init ();                       // Initialize crossbar and GPIO
+   Timer2_Init (SYSCLK / 12 / 10);     // Init Timer2 to generate
                                        // interrupts at a 10Hz rate.
 
    EA = 1;                             // Enable global interrupts
@@ -130,21 +123,20 @@ void PORT_Init (void)
 // interval specified by <counts> using SYSCLK/48 as its time base.
 //
 //-----------------------------------------------------------------------------
-void Timer3_Init (secs)
+void Timer2_Init (int counts)
 {
-   TMR3CN = 0x00;                      // Stop Timer; Clear TF;
+   TMR2CN = 0x00;                      // Stop Timer2; Clear TF2;
                                        // use SYSCLK/12 as timebase
 
-   T3XCLK=0x00;   // clck based on system clock/8*8=187500 signals per second
+   CKCON &= ~0x30;                     // Timer2 clocked based on T2XCLK;
 
-   TMR3L=0x1b; // setting the high to  187500/4=46875 clicks
-   TMR3H=0xb7;
-
-
-   ET3 = 1;                            // Enable Timer interrupts
-   TR3 = 1;                            // Start Timer
-
+   //TMR2RL = -counts;                   // Init reload values
+   TMR2RLH = 0xcf;
+   TMR2RLL = 0x2c;
    
+   TMR2 = 0xffff;                      // Set to reload immediately
+   ET2 = 1;                            // Enable Timer2 interrupts
+   TR2 = 1;                            // Start Timer2
 }
 
 //-----------------------------------------------------------------------------
@@ -158,19 +150,10 @@ void Timer3_Init (secs)
 // This routine changes the state of the LED whenever Timer2 overflows.
 //
 //-----------------------------------------------------------------------------
-INTERRUPT(Timer3_ISR, INTERRUPT_TIMER3)
+INTERRUPT(Timer2_ISR, INTERRUPT_TIMER2)
 {
-   TF3H = 0;
-
-   if(glob_counter==2*secs)
-   {
-	   LED=!LED;
-
-	   glob_counter=1;
-   }
-
-
-   glob_counter+=1;								   // Change state of LED
+   TF2H = 0;                           // Clear Timer2 interrupt flag
+   LED = !LED;                         // Change state of LED
 }
 
 //-----------------------------------------------------------------------------

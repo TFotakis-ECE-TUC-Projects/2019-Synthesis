@@ -1,7 +1,7 @@
 	//-----------------------------------------------------------------------------
-// Library for testing CC2500 tx mode with C8051F320/1 target board, 
+// Library for testing CC2500 tx mode with C8051F320/1 target board,
 // based on Chipcon/TI cc2500 example code.
-//  
+//
 // Author: aggelos@telecom
 //-----------------------------------------------------------------------------
 
@@ -60,15 +60,15 @@ typedef struct S_RF_SETTINGS{
 //-----------------------------------------------------------------------------
 // Global CONSTANTS
 //-----------------------------------------------------------------------------
-#define CRC_OK              0x80  
+#define CRC_OK              0x80
 #define RSSI                0
 #define LQI                 1
-#define BYTES_IN_RXFIFO     0x7F        
+#define BYTES_IN_RXFIFO     0x7F
 
 
 #define MODE_NOT_SET    0
 #define TX              1
-#define RX              2 
+#define RX              2
 
 
 #define SYSCLK       24000000   // SYSCLK frequency in Hz
@@ -119,13 +119,13 @@ SBIT(SW2, SFR_P2, 0);           // SW2='0' means switch pressed
 
 
 // Select the Internal Oscillator as Multiplier input source and disable the watchdog timer
-// SYSCLK = 4X Clock Multiplier / 2    
+// SYSCLK = 4X Clock Multiplier / 2
 
 
-//#define CLOCK_INIT() 
-//    do { 
-//          UINT8 i; 
-//          PCA0MD &= ~0x40;  				//bit6 set to 0 i.e. disable watchdog timer 
+//#define CLOCK_INIT()
+//    do {
+//          UINT8 i;
+//          PCA0MD &= ~0x40;  				//bit6 set to 0 i.e. disable watchdog timer
 //          CLKMUL = INT_OSC; 				//reset clock multiplier and set clock multiplier source the internal clock
 //          CLKMUL |= 0x80; 				//clock multiplier enabled - after that you need to wait for at least 5usecs
 //		    for (i = 0; i < 20; i++); 		//this performs a crude 5usecs wait
@@ -134,7 +134,7 @@ SBIT(SW2, SFR_P2, 0);           // SW2='0' means switch pressed
 //		    CLKSEL |= FOUR_X_CLK_MULT;      // clock source: 4 x clock_mult/2
 //          OSCICN = INT_OSC_DIV_1;   		//system clock enabled and divided by 1.
 //											//after all the above system clock should be 4 x 12MHz /2 = 24MHz.
-//    } while (0)  
+//    } while (0)
 #define CLOCK_INIT() \
 	do { \
 		UINT8 i; \
@@ -146,7 +146,7 @@ SBIT(SW2, SFR_P2, 0);           // SW2='0' means switch pressed
 		while (!(CLKMUL & BM_MULRDY)); \
 		CLKSEL |= FOUR_X_CLK_MULT; \
 		OSCICN = INT_OSC_DIV_1; \
-	} while (0) 
+	} while (0)
 
 
 //-----------------------------------------------------------------------------
@@ -162,7 +162,7 @@ SBIT(SW2, SFR_P2, 0);           // SW2='0' means switch pressed
 #define BM_NSSMD1       0x08    // Slave Select Mode
 #define BM_SPI0E        0x02    // SPI I/O Enable
 #define SPI_ENABLE()    (SPI0CN |= BM_SPIEN)
-#define SPI_DISABLE()   (SPI0CN &= ~BM_SPIEN)   
+#define SPI_DISABLE()   (SPI0CN &= ~BM_SPIEN)
 
 
 // SPI Initialization
@@ -300,7 +300,7 @@ INTERRUPT(Timer2_ISR, INTERRUPT_TIMER2) {
 //  void intToAscii(UINT32 value)
 //
 //  DESCRIPTION:
-//		Takes a 32 bits interger as input and converts it to ascii. Puts the 
+//		Takes a 32 bits interger as input and converts it to ascii. Puts the
 //      result in the global variable asciiString[]
 //
 //	ARGUMENTS:
@@ -357,7 +357,7 @@ void halWait(UINT16 timeout) {
 
 
 void spi_wait(void) {
-	do { 
+	do {
 		while (!SPIF);
 	 	SPIF=0;
    	} while (0);
@@ -407,7 +407,7 @@ void halRfWriteRfSettings(RF_SETTINGS *pRfSettings) {
 	halSpiWriteReg(CCxxx0_TEST0,    pRfSettings->TEST0);
 	halSpiWriteReg(CCxxx0_FIFOTHR,  pRfSettings->FIFOTHR);
 	halSpiWriteReg(CCxxx0_IOCFG2,   pRfSettings->IOCFG2);
-	halSpiWriteReg(CCxxx0_IOCFG0,   pRfSettings->IOCFG0);    
+	halSpiWriteReg(CCxxx0_IOCFG0,   pRfSettings->IOCFG0);
 	halSpiWriteReg(CCxxx0_PKTCTRL1, pRfSettings->PKTCTRL1);
 	halSpiWriteReg(CCxxx0_PKTCTRL0, pRfSettings->PKTCTRL0);
 	halSpiWriteReg(CCxxx0_ADDR,     pRfSettings->ADDR);
@@ -420,11 +420,11 @@ void halRfWriteRfSettings(RF_SETTINGS *pRfSettings) {
 //
 //  DESCRIPTION:
 //      This function can be used to transmit a packet with packet length up to 63 bytes.
-//      To use this function, GD00 must be configured to be asserted when sync word is sent and 
+//      To use this function, GD00 must be configured to be asserted when sync word is sent and
 //      de-asserted at the end of the packet => halSpiWriteReg(CCxxx0_IOCFG0, 0x06);
 //      The function implements polling of GDO0. First it waits for GD00 to be set and then it waits
-//      for it to be cleared.  
-//      
+//      for it to be cleared.
+//
 //  ARGUMENTS:
 //      BYTE *txBuffer
 //          Pointer to a buffer containing the data that are going to be transmitted
@@ -436,7 +436,7 @@ void halRfWriteRfSettings(RF_SETTINGS *pRfSettings) {
 void halRfSendPacket(BYTE *txBuffer, UINT8 size) {
 	halSpiWriteBurstReg(CCxxx0_TXFIFO, txBuffer, size);
 	halSpiStrobe(CCxxx0_STX);
-	//LED = !LED; 
+	//LED = !LED;
 	// Wait for GDO0 to be set -> sync transmitted
 	while (!GDO0_PIN);
 	// Wait for GDO0 to be cleared -> end of packet
@@ -457,7 +457,7 @@ void halRfSendPacket(BYTE *txBuffer, UINT8 size) {
 //          Array of bytes to be written into a corresponding range of
 //          CCxx00 registers, starting by the address specified in _addr_.
 //      BYTE count
-//          Number of bytes to be written to the subsequent CCxxx0 registers.   
+//          Number of bytes to be written to the subsequent CCxxx0 registers.
 //-----------------------------------------------------------------------------
 void halSpiWriteBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
 	UINT8 i;
@@ -569,7 +569,7 @@ void halSpiReadBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
 	NSSMD0 = 0;
 	while (P0_1);
 	SPI0DAT = (addr | READ_BURST);
-	spi_wait();  
+	spi_wait();
 	for (i = 0; i < count; i++) {
 		SPI0DAT = 0;
 		spi_wait();
@@ -582,25 +582,25 @@ void halSpiReadBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
 //-----------------------------------------------------------------------------
 //  BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length)
 //
-//  DESCRIPTION: 
+//  DESCRIPTION:
 //      This function can be used to receive a packet of variable packet length (first byte in the packet
 //      must be the length byte). The packet length should not exceed the RX FIFO size.
-//      To use this function, GD00 must be configured to be asserted when sync word is sent and 
+//      To use this function, GD00 must be configured to be asserted when sync word is sent and
 //      de-asserted at the end of the packet => halSpiWriteReg(CCxxx0_IOCFG0, 0x06);
 //      Also, APPEND_STATUS in the PKTCTRL1 register must be enabled.
 //      The function implements polling of GDO0. First it waits for GD00 to be set and then it waits
 //      for it to be cleared.
 //      After the GDO0 pin has been de-asserted, the RXBYTES register is read to make sure that there
 //      are bytes in the FIFO. This is because the GDO signal will indicate sync received even if the
-//      FIFO is flushed due to address filtering, CRC filtering, or packet length filtering. 
-//  
+//      FIFO is flushed due to address filtering, CRC filtering, or packet length filtering.
+//
 //  ARGUMENTS:
 //      BYTE *rxBuffer
 //          Pointer to the buffer where the incoming data should be stored
 //      UINT8 *length
 //          Pointer to a variable containing the size of the buffer where the incoming data should be
 //          stored. After this function returns, that variable holds the packet length.
-//          
+//
 //  RETURN VALUE:
 //      BOOL
 //          TRUE:   CRC OK
@@ -626,23 +626,23 @@ BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length) {
 
 		// Read length byte
 		packetLength = halSpiReadReg(CCxxx0_RXFIFO);
-	
+
 		// Read data from RX FIFO and store in rxBuffer
 		if (packetLength <= *length) {
-			halSpiReadBurstReg(CCxxx0_RXFIFO, rxBuffer, packetLength); 
+			halSpiReadBurstReg(CCxxx0_RXFIFO, rxBuffer, packetLength);
 			*length = packetLength;
-		
+
 			// Read the 2 appended status bytes (status[0] = RSSI, status[1] = LQI)
-			halSpiReadBurstReg(CCxxx0_RXFIFO, status, 2); 
+			halSpiReadBurstReg(CCxxx0_RXFIFO, status, 2);
 			RSSI_Measurement=status[0];
-			
+
 			// MSB of LQI is the CRC_OK bit
 			return (status[LQI] & CRC_OK);
 		} else {
 			*length = packetLength;
 
 			// Make sure that the radio is in IDLE state before flushing the FIFO
-			// (Unless RXOFF_MODE has been changed, the radio should be in IDLE state at this point) 
+			// (Unless RXOFF_MODE has been changed, the radio should be in IDLE state at this point)
 			halSpiStrobe(CCxxx0_SIDLE);
 
 			// Flush RX FIFO
@@ -655,10 +655,10 @@ BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length) {
 
 
 void resetRadio(void){
-	do { 
-		NSSMD0 = 0; 
+	do {
+		NSSMD0 = 0;
 		while (P0_1);           //this is necessary for the specific cc2500 radio - see cc2500 manual page 21
-		SPI0DAT = CCxxx0_SRES; 	//reset cc2500 chip 
+		SPI0DAT = CCxxx0_SRES; 	//reset cc2500 chip
 		spi_wait();				//wait until data have been tranmitted through the spi interface
 		NSSMD0 = 1; 			//tranmission complete - inform slave node (i.e. the cc2500)
 	} while (0);
@@ -667,9 +667,9 @@ void resetRadio(void){
 
 void waitRadioForResponce(void) {
 	NSSMD0 = 1;
-	halWait(1); 
+	halWait(1);
 	NSSMD0 = 0;
-	halWait(1); 
-	NSSMD0 = 1; 
-	halWait(41); 
+	halWait(1);
+	NSSMD0 = 1;
+	halWait(41);
 }

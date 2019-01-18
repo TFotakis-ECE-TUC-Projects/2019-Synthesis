@@ -1,6 +1,8 @@
 #include "radio.h"
 
-#define ID 1              // ID of slave
+#define ID 5              // ID of slave
+#define RECEIVE_CHANNEL 0x00
+#define TRANSMIT_CHANNEL 0x01
 #define DROP_AMBIENT_LIGHT
 
 // Radio settings
@@ -87,6 +89,7 @@ UINT8 conversion_ended = 0;
 UINT8 action = 0;
 long accumulator = 0;     // accumulator for averaging
 UINT16 measurements = 2048;  // measurement counter
+unsigned long result = 0;
 // UINT16 counter = 0;
 // UINT16 mV;
 // BYTE mVlow;
@@ -153,6 +156,7 @@ void setup(void) {
 }
 
 void txMode(void) {
+	halSpiWriteReg(CCxxx0_CHANNR, TRANSMIT_CHANNEL);
 	LED = 1;
 	halRfSendPacket(txBuffer, sizeof(txBuffer));
 	LED = 0;
@@ -160,6 +164,7 @@ void txMode(void) {
 
 
 void rxMode(void) {
+	halSpiWriteReg(CCxxx0_CHANNR, RECEIVE_CHANNEL);
 	length = sizeof(rxBuffer);
 	halRfReceivePacket(rxBuffer, &length);
 	// flag_req = rxBuffer[0] == ID;
@@ -178,9 +183,6 @@ void startConversion(void) {
 }
 
 void ADC0_ISR(void) interrupt 10 {
-
-	unsigned long result = 0;
-
 	LED = 1;
 
 	#ifndef DROP_AMBIENT_LIGHT

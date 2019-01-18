@@ -1,9 +1,10 @@
 #include "radio.h"
 #include "stdio.h"
 
+#define RECEIVE_CHANNEL 0x01
+#define TRANSMIT_CHANNEL 0x00
 #define BAUDRATE 9600
-#define NODES_NUMBER 1
-//#define WDT_ENABLED
+#define NODES_NUMBER 5
 
 // Radio settings
 // Chipcon
@@ -80,15 +81,8 @@ BYTE code paTable = 0xFF;	// PATABLE (1 dBm output power)
 BYTE xdata txBuffer[] = {1, 0};
 BYTE xdata rxBuffer[61];  // Length byte  + 2 status bytes are not stored in
 						  // this buffer
-UINT8 xdata mode = MODE_NOT_SET;
-BYTE xdata asciiString[11];
 
-UINT32 packetsReceived = 0;
-UINT32 packetsSent = 0;
 UINT8 length;
-BYTE mytestbyte;
-UINT16 mV;
-BYTE id;
 
 void UART0_Init(void) {
 	P0MDOUT |= 0x10;  // enable UTX as push-pull output
@@ -122,28 +116,6 @@ void UART0_Init(void) {
 	TMOD |= 0x20;
 	TR1 = 1;  // START Timer1
 	TI0 = 1;  // Indicate TX0 ready
-//	ES0 = 1;
-}
-
-void ALARM_Init(void) {
-	XBR1      |= 0x41;    // Route CEX0 to port pin
-	P0MDOUT   |= 0x03;    // Set P0.0, P0.1 to push-pull
-	PCA0MD    |= 0x08;    // Set PCA0 Clock source to system clock
-	PCA0CPM0  |= 0x42;    // Enable 8bit PWM Signal on CEX0
-	PCA0CPL0  |= 0;       // Unused on 8bit PWM
-	PCA0CPH0  |= 127;     // Set PCA0 Compare Flag High byte to 128 so it generates a 50% PWM
-}
-
-void WDT_Init(void) {
-	PCA0CN |=  0x40;            // PCA counter enable
-	PCA0L   = 0x00;            // Set lower byte of PCA counter to 0
-	PCA0H   = 0x00;            // Set higher byte of PCA counter to 0
-	PCA0CPL4= 0xFF;            // Write offset for the WDT
-	PCA0MD |= 0x40;				// Enable watchdog timer
-}
-
-void WDT_Stop(void) {
-	PCA0MD &= ~0x40;			// Disable watchdog timer
 }
 
 void setup(void) {
@@ -171,31 +143,26 @@ void setup(void) {
 }
 
 void txMode(void) {
-	LED = 1;
+//	LED = 1;
+    halSpiWriteReg(CCxxx0_CHANNR, TRANSMIT_CHANNEL);
 	halRfSendPacket(txBuffer, sizeof(txBuffer));
-	LED = 0;
+//	LED = 0;
 }
 
 void rxMode(void) {
+    halSpiWriteReg(CCxxx0_CHANNR, RECEIVE_CHANNEL);
 	length = sizeof(rxBuffer);
-	#ifdef WDT_ENABLED
-	WDT_Init();
-	#endif
 	halRfReceivePacket(rxBuffer, &length);
-	#ifdef WDT_ENABLED
-	WDT_Stop();
-	#endif
 }
 
 void request(void) {
 	int i;
 	uint16_t measurements[5] = {0, 0, 0, 0, 0};
-	// printf("mpika stin request\n");
 
 //	printf("Broadcast... ");
-	txBuffer[1] = 0;
-	txMode();
 	LED = 1;
+	txBuffer[1] = 0;
+	halWait(30000);
 	halWait(30000);
 	halWait(30000);
 	halWait(30000);
@@ -204,6 +171,22 @@ void request(void) {
 	halWait(30000);
 	halWait(30000);
 //	halWait(30000);
+//	halWait(30000);
+//	halWait(30000);
+//	halWait(30000);
+//	halWait(30000);
+//	halWait(30000);
+//	halWait(30000);
+	txMode();
+
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
+	halWait(30000);
 	LED = 0;
 //	printf("Success!\n");
 
@@ -218,37 +201,12 @@ void request(void) {
 
 		rxMode();
 //		printf("Received from: %d\n", (int) rxBuffer[2]);
-		mV = (rxBuffer[1] << 8) | rxBuffer[0];
-		measurements[i] = mV;
+		measurements[i] = (rxBuffer[1] << 8) | rxBuffer[0];
 		// printf("received voltage= %u  from id:  mV\n", mV);
 		// printf("%u ", mV);
 	}
 	// printf("\n");
 	printf("%d %d %d %d %d\n", measurements[0], measurements[1], measurements[2], measurements[3], measurements[4]);
-}
-
-void ALARM_PLAY(uint8_t play){
-	if(!play){
-		CR = 0;         // Disable PCA0 Timer --> PWM Output
-		return;
-	}
-	CR = 1;           // Enable PCA0 Timer --> PWM Output
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	CR = 0;           // Disable PCA0 Timer --> PWM Output
-	halWait(30000);
-	halWait(30000);
-	halWait(30000);
-	PCA0CPH0 += 16;   // Change PWM Duty Cycle --> Alarm Sound
-}
-
-void UART0_Interrupt(void) interrupt 4 {
-	char c;
-	if(!RI0) return;
-	RI0 = 0;
-	c = (char) SBUF0;
-	if(c == '0' || c == '1') CR = c == '1';
 }
 
 void loop(void) {
