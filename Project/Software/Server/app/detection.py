@@ -14,10 +14,12 @@ import random
 import subprocess
 import numpy
 
-from pynput import keyboard
 
 ser = serial.Serial('/dev/ttyUSB0', 9600)
-TRAINING = True
+TRAINING = False
+
+if TRAINING:
+	from pynput import keyboard
 
 if plotting:
     xq = Queue()
@@ -127,14 +129,14 @@ def fft_detection(vals):
     data = []
     for i in range(5):
         #print(vals[i])
-        fft_t = (numpy.fft.fftshift(numpy.fft.fft(vals[i])))     
+        fft_t = (numpy.fft.fftshift(numpy.fft.fft(vals[i])))
         fft_t = sum(abs(fft_t[int(N/2+1):]))/N/FW
         print(fft_t)
         if fft_t > 1:
             data.append(True)
         else:
             data.append(False)
-    #print(data) 
+    #print(data)
     return data
 
 
@@ -154,7 +156,7 @@ def randomshit():
 def getData():
     global Data
     return {'tables': Data}
-    
+
 def on_press(key):
     global Keyboard
     try:
