@@ -37,15 +37,21 @@ The system includes five sensor nodes (slaves, depicted in Fig.2-right), one bas
     • Master: Gives instructions to slave nodes so that they get synchronized to make the laser intensity measurements and to report them back on specific time slots. After the collection of all the measurements, a message to the server is sent with the collected data.
     • Server: Collects measured data, runs the detection algorithm on the collected data and updates the website.
 
-![Network Top View](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/NetworkTopView.png "Network Top View")
+![Network Top View](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/01-NetworkTopView.png "Network Top View")
 Figure 1: Initial idea. Top view.
 
+![Slave Node](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/02a-SlaveNode.png "Slave Node")
+![Mirror](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/02b-Mirror.png "Mirror")
 Figure 2: Slave Node on the left, mirror on the right.
 
+![Master Node](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/03-MasterNode.png "Master Node")
 Figure 3: Master Node.
 
+![Server Laptop](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/04a-ServerLaptop.png "Server Laptop")
+![Server RPi](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/04b-ServerRPi.png "Server RPi")
 Figure 4: Server on a laptop on the left, Server on a Raspberry Pi Zero W on the right.
 
+![Fully Connected System](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/05-FullyConnectedSystem.png "Fully Connected System")
 Figure 5: Fully connected System.
 
 ### Technical Difficulties
@@ -82,6 +88,7 @@ Used to redirect the light beam to the desired destination.
 
 ### Switching Circuit
 
+![Laser Amplifier Circuit](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/06-LaserAmplifierCircuit.png "Laser Amplifier Circuit")
 Figure 6: Laser amplifier circuit.
 
 This circuit was used for duty-cycle purposes, in the interest of minimizing the power consumption of the project. For the implementation of the switching circuit we used the following components:
@@ -104,6 +111,7 @@ Mounting hardware not only inside the slave’s case but also on the walls witho
 ### Slave Node Overview
 Fig. 7 shows the wiring between the components we already discussed. Concerning the power supply of the circuit we used the daughter-card’s pins to provide power for both the circuit and the positive polarity of the laser diode. The daughter-card feeds the laser positive polarity and the switching circuit’s enable signal with VCC = 3.3V. Finally, the daughter-card’s power was provided by a 5V, 2600 mAh power bank which, in paper, could last for more than 18-hours of continuous use.
  
+![Opened Slave Node](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/07-OpenedSlaveNode.png "Opened Slave Node")
 Figure 7: Inside a slave’s casing.
 
 ### Master Node Overview
@@ -130,11 +138,11 @@ As soon as the first real world test took place at the desired area revealing th
 The laser is turned on, while the ADC takes 1024 measurements which are summed up to a variable, SUM, representing a measurement of the combination of the ambient light and the laser. Afterwards, the laser is turned off, while the ADC takes another 1024 measurements, which represent a measurement of the current ambient light. Those measurements are then subtracted from the SUM variable. Finally, the SUM is divided by 1024 to calculate the measurements’ arithmetic mean, which represent a close approximation of the laser’s intensity. To further eliminate ambient light’s intensity which caused the photovoltaic to operate on its nonlinear area, an optical filter, which only lets red (the laser’s color) to pass through, was used as discussed above.
 
 ### Master Node Algorithm Flow Chart
-
+![Master Node Algorithm Flow Chart](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/08-MasterNodeAlgorithmFlowChart.png "Master Node Algorithm Flow Chart")
 Figure 8
 
 ### Slave Node Algorithm Flow Chart
-
+![Slave Node Algorithm Flow Chart](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/09-SlaveNodeAlgorithmFlowChart.png "Slave Node Algorithm Flow Chart")
 Figure 9
 
 ## Software
@@ -158,14 +166,19 @@ Thus, it is now clear that the constant (or very slow), and fast components of t
 ### DSP & Detection
 Having said that, the digital signal processing part is now a lot more straightforward. By performing Discrete Time Fourier Transform (DTFT) on small time frames of the received waveforms, frequencies (such as the above) can be cropped in order to detect smoke from the rest of the signal. When there is no smoke, the intermediate frequencies (higher than 0 less than 1, see Fig. 11 left) offer small contribution to the overall signal. However, when smoke passes through the laser ray, a sudden drop at the sensor level occurs (also see in Fig. 11 right, how the intermediate frequencies get significant amplitude). A heuristic metric was developed by calculating the arithmetic mean of the absolute value of the intermediate frequencies. Through trial and error, a heuristic threshold value was identified and used as a means of checking whether there is smoke or not. Surprisingly, this method works quite good, all things considered.
 
+![Real Time Monitoring Sensor Level](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/10-RealTimeMonitoringSensorLevel.png "Real Time Monitoring Sensor Level")
 Figure 10: Real-time monitoring of Sensor Level.
 
+![Smoke Detection Algorithm Figure](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/11-SmokeDetectionAlgorithmFigure.png "Smoke Detection Algorithm Figure")
 Figure 11: The top figures are time windows without and with smoke. The bottom figures are their corresponding FFT waveforms. 
 
+![Smoke Detection On Time And On Frequency](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/12-SmokeDetectionOnTimeAndOnFrequency.png "Smoke Detection On Time And On Frequency")
 Figure 12: Waveform of sensor level (top), alongside the FFT based metric compared to the heuristic threshold (bottom). 
 
+![Site UI No Smoke](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/13-SiteUINoSmoke.png "Site UI No Smoke")
 Figure 13: Website view without smoke.
 
+![Site UI With Smoke](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/14-SiteUIWithSmoke.png "Site UI With Smoke")
 Figure 14: Website view with smoke.
 
 # Future Work
@@ -186,3 +199,4 @@ GitHub Repository: https://github.com/TFotakis/TUC-Synthesis
 
 # The Team
 ---
+![The Team](https://raw.githubusercontent.com/TFotakis/TUC-Synthesis/master/Project/Documentation/15-TheTeam.png "The Team")
